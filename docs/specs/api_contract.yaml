@@ -1,0 +1,102 @@
+openapi: 3.1.0
+info:
+  title: Derived API Contract
+  version: 1.0.0
+paths:
+  /api/auth/login:
+    post:
+      operationId: post_api_auth_login
+      responses:
+        '201':
+          description: Derived from SPEC.md
+          content:
+            application/json:
+              schema:
+                type: object
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+  /api/auth/me:
+    get:
+      operationId: get_api_auth_me
+      responses:
+        '200':
+          description: Derived from SPEC.md
+          content:
+            application/json:
+              schema:
+                type: object
+  /api/auth/register:
+    post:
+      operationId: post_api_auth_register
+      responses:
+        '201':
+          description: Derived from SPEC.md
+          content:
+            application/json:
+              schema:
+                type: object
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+  /api/opportunities:
+    get:
+      operationId: get_api_opportunities
+      responses:
+        '200':
+          description: Derived from SPEC.md
+          content:
+            application/json:
+              schema:
+                type: object
+    post:
+      operationId: post_api_opportunities
+      responses:
+        '201':
+          description: Derived from SPEC.md
+          content:
+            application/json:
+              schema:
+                type: object
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+  /api/opportunities/:id:
+    delete:
+      operationId: delete_api_opportunities_id
+      responses:
+        '204':
+          description: Derived from SPEC.md
+    get:
+      operationId: get_api_opportunities_id
+      responses:
+        '200':
+          description: Derived from SPEC.md
+          content:
+            application/json:
+              schema:
+                type: object
+    patch:
+      operationId: patch_api_opportunities_id
+      responses:
+        '200':
+          description: Derived from SPEC.md
+          content:
+            application/json:
+              schema:
+                type: object
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object

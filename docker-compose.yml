@@ -1,0 +1,91 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15
+    container_name: postgres
+    environment:
+      POSTGRES_USER: projectuser
+      POSTGRES_PASSWORD: secretpassword
+      POSTGRES_DB: projectdb
+    ports:
+      - "25432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U projectuser -d projectdb"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7
+    container_name: redis
+    ports:
+      - "26379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  auth-service:
+    build:
+      context: ./backend/auth-service
+      dockerfile: Dockerfile
+    container_name: auth-service
+    environment:
+      NODE_ENV: development
+      PORT: 23001
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: projectuser
+      POSTGRES_PASSWORD: secretpassword
+      POSTGRES_DB: projectdb
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      JWT_SECRET: supersecretjwtkey
+    ports:
+      - "23001:23001"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:23001/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  opportunity-service:
+    build:
+      context: ./backend/opportunity-service
+      dockerfile: Dockerfile
+    container_name: opportunity-service
+    environment:
+      NODE_ENV: development
+      PORT: 23002
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: projectuser
+      POSTGRES_PASSWORD: secretpassword
+      POSTGRES_DB: projectdb
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      JWT_SECRET: supersecretjwtkey
+    ports:
+      - "23002:23002"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:23002/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+volumes:
+  postgres_data:
