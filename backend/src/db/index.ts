@@ -1,4 +1,4 @@
-import { Pool, QueryResult, PoolClient } from 'pg';
+import { Pool, QueryResult, QueryResultRow, PoolClient } from 'pg';
 import * as dotenv from 'dotenv';
 
 dotenv.config();
@@ -21,7 +21,7 @@ pool.on('error', (err) => {
   console.error('Unexpected error on idle client', err);
 });
 
-export const query = async <T = unknown>(text: string, params?: unknown[]): Promise<QueryResult<T>> => {
+export const query = async <T extends QueryResultRow = QueryResultRow>(text: string, params?: unknown[]): Promise<QueryResult<T>> => {
   const start = Date.now();
   const res = await pool.query<T>(text, params);
   const duration = Date.now() - start;

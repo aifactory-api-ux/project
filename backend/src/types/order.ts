@@ -15,3 +15,5 @@ export interface Order {
 export interface CreateOrderInput {
   items: CartItem[];
 }
+
+export { CartItem };

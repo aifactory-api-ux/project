@@ -1,4 +1,39 @@
 import { query } from '../db/index';
+import { QueryResultRow } from 'pg';
+
+interface StatusRow extends QueryResultRow {
+  total: string;
+  pending: string;
+  in_transit: string;
+  delivered: string;
+  cancelled: string;
+  total_quantity: string;
+}
+
+interface AvgDaysRow extends QueryResultRow {
+  avg_days: string;
+}
+
+interface TrendRow extends QueryResultRow {
+  month: string;
+  year: string;
+  delivered: string;
+  in_transit: string;
+  pending: string;
+  cancelled: string;
+  total: string;
+}
+
+interface VolumeRow extends QueryResultRow {
+  plant_id: string;
+  plant_name: string;
+  total_orders: string;
+  total_quantity: string;
+  delivered_orders: string;
+  in_transit_orders: string;
+  pending_orders: string;
+  cancelled_orders: string;
+}
 
 export interface KPIS {
   totalOrders: number;
@@ -48,7 +83,7 @@ export const getKPIs = async (fromDate?: string, toDate?: string): Promise<KPIS>
     params.push(toDate);
   }
 
-  const statusResult = await query(
+  const statusResult = await query<StatusRow>(
     `SELECT 
       COUNT(*) as total,
       COUNT(*) FILTER (WHERE status = 'pending') as pending,
@@ -92,7 +127,7 @@ export const getKPIs = async (fromDate?: string, toDate?: string): Promise<KPIS>
     avgDeliveryQuery = `SELECT COALESCE(AVG(EXTRACT(EPOCH FROM (updated_at - created_at)) / 86400), 0) as avg_days FROM orders WHERE status = 'delivered' AND created_at <= $1`;
   }
 
-  const avgResult = await query(avgDeliveryQuery, params);
+  const avgResult = await query<AvgDaysRow>(avgDeliveryQuery, params);
   const avgDeliveryTime = parseFloat(avgResult.rows[0].avg_days) || 0;
 
   return {
@@ -123,7 +158,7 @@ export const getTrends = async (fromDate?: string, toDate?: string): Promise<Tre
     params.push(toDate);
   }
 
-  const result = await query(
+  const result = await query<TrendRow>(
     `SELECT 
       EXTRACT(MONTH FROM created_at)::int as month,
       EXTRACT(YEAR FROM created_at)::int as year,
@@ -159,7 +194,7 @@ export const getVolumeByPlant = async (plantId?: number): Promise<VolumeByPlant[
     params.push(plantId);
   }
 
-  const result = await query(
+  const result = await query<VolumeRow>(
     `SELECT 
       p.id as plant_id,
       p.name as plant_name,

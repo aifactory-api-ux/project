@@ -9,7 +9,7 @@ for (const varName of requiredEnvVars) {
 }
 
 const JWT_SECRET = process.env.JWT_SECRET as string;
-const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '24h';
+const JWT_EXPIRES_IN = (process.env.JWT_EXPIRES_IN || '1d') as string;
 const JWT_ALGORITHM = 'HS256';
 
 export interface TokenPayload {
