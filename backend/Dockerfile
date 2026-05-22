@@ -3,7 +3,7 @@ FROM node:20.11.1-alpine3.19 AS builder
 WORKDIR /app
 
 COPY package*.json ./
-RUN npm ci --only=production && npm cache clean --force
+RUN npm ci && npm cache clean --force
 
 COPY tsconfig.json ./
 COPY src ./src
