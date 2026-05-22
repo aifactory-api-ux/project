@@ -1,15 +1,15 @@
 {
-  "project_id": "f6d5aff1-7ae0-46a0-881f-ec2819a2ac01",
+  "project_id": "1ba6617d-ee96-4b9f-9210-eb6c07b2cbbc",
   "project_name": "Project",
-  "goal": "Implementar el proyecto: Project\n\nVisión: El proyecto busca resolver la ausencia de un canal de venta online para productos especializados para gatos, lo que actualmente limita el alcance del negocio y la comodidad para los clientes. La situación actual es que no existe una plataforma digital para l",
-  "last_updated": "2026-05-22T02:14:28.736031Z",
-  "total_items": 24,
-  "completed_count": 21,
+  "goal": "Implementar el proyecto: Project\n\nArquitectura Técnica:\n# Síntesis Técnica - Project\n\n## Resumen Ejecutivo\nSe propone un MVP con arquitectura monolítica basada en FastAPI (backend), SQLite (base de datos) y React (frontend). FastAPI ofrece alto rendimiento y documentación automática, SQLite simplifi",
+  "last_updated": "2026-05-22T21:40:56.855333Z",
+  "total_items": 6,
+  "completed_count": 5,
   "status": "in_progress",
-  "current_item_index": 21,
+  "current_item_index": 5,
   "spec_file": "SPEC.md",
   "plan_file": "DEVELOPMENT_PLAN.md",
-  "contract_manifest_available": true,
+  "contract_manifest_available": false,
   "all_files_created": [
     ".opencode/.gitignore",
     ".opencode/skills/frontend-design/SKILL.md",
@@ -17,78 +17,44 @@
     "DEVELOPMENT_PLAN.md",
     "SPEC.md",
     "api_contract.yaml",
-    ".coverage",
-    ".opencode/package-lock.json",
-    ".opencode/package.json",
-    ".plan_checkpoint.json",
-    ".progress_log",
-    ".pytest_cache/.gitignore",
-    ".pytest_cache/CACHEDIR.TAG",
-    ".pytest_cache/README.md",
-    ".pytest_cache/v/cache/nodeids",
-    ".pytest_cache/v/cache/stepwise",
-    "backend/src/models/user.ts",
-    "backend/src/controllers/authController.ts",
-    "backend/src/controllers/userController.ts",
-    "backend/src/routes/auth.ts",
-    "backend/src/routes/users.ts",
-    "backend/src/middleware/auth.ts",
-    "backend/src/models/cart.ts",
-    "backend/src/controllers/cartController.ts",
-    "backend/src/routes/cart.ts",
-    "backend/src/models/order.ts",
+    "backend/.env.example",
+    "backend/README.md",
+    "backend/package.json",
+    "backend/src/app.ts",
+    "backend/src/controllers/distributionCenterController.ts",
+    "backend/src/controllers/plantController.ts",
+    "backend/src/db/index.ts",
+    "backend/src/db/redis.ts",
+    "backend/src/db/schema.sql",
+    "backend/src/db/seed.ts",
+    "backend/src/index.ts",
+    "backend/src/middleware/errorHandler.ts",
+    "backend/src/middleware/validate.ts",
+    "backend/src/models/DistributionCenter.ts",
+    "backend/src/models/Order.ts",
+    "backend/src/models/Plant.ts",
+    "backend/src/routes/distributionCenters.ts",
+    "backend/src/routes/plants.ts",
+    "backend/src/types/index.d.ts",
+    "backend/src/utils/env.ts",
+    "backend/src/utils/logger.ts",
+    "backend/tsconfig.json",
     "backend/src/controllers/orderController.ts",
     "backend/src/routes/orders.ts",
-    "backend/src/app.ts",
-    "backend/src/server.ts",
-    "backend/src/middleware/errorHandler.ts",
+    "backend/package-lock.json",
+    "backend/src/controllers/metricsController.ts",
+    "backend/src/routes/metrics.ts",
     "docker-compose.yml",
     "run.sh",
     "README.md",
     ".dockerignore",
     ".gitignore",
-    "backend/.env.example",
-    "backend/Dockerfile",
-    "backend/package.json",
-    "backend/src/db/migrate.ts",
-    "backend/tsconfig.json",
-    "frontend/src/components/ui/BarraDeNavegacionPrincipal.tsx",
-    "frontend/src/styles/tokens.ts",
-    "frontend/src/components/ui/CartProductRow.tsx",
-    "frontend/src/types/cart.ts",
-    "frontend/src/types/product.ts",
-    "frontend/src/components/ui/OrderSummaryCard.tsx",
-    "frontend/src/components/ui/CouponField.tsx",
-    "frontend/src/components/ui/PrimaryButton.tsx",
-    ".pytest_cache/v/cache/lastfailed",
-    "backend/src/controllers/authController.test.ts",
-    "backend/src/controllers/userController.test.ts",
-    "backend/src/middleware/auth.test.ts",
-    "backend/src/models/user.test.ts",
-    "backend/src/routes/auth.test.ts",
-    "backend/src/routes/users.test.ts",
-    "coverage.json",
-    "run_tests.sh",
-    "tests/test_order_controller.py",
-    "tests/test_order_model.py",
-    "tests/test_orders_routes.py",
-    "frontend/src/components/ui/QuantitySelector.tsx",
-    "frontend/src/components/ui/TrustMessage.tsx",
-    "frontend/src/components/ui/RecommendationCard.tsx",
-    "frontend/src/hooks/useCart.ts",
-    "frontend/src/hooks/useProducts.ts",
-    "frontend/src/hooks/useCategories.ts",
-    "frontend/src/hooks/useUser.ts",
-    "frontend/src/hooks/useOrders.ts",
-    "frontend/src/types/category.ts",
-    "frontend/src/types/order.ts",
-    "frontend/src/types/user.ts",
-    "frontend/src/pages/CartPage.tsx"
+    "backend/Dockerfile"
   ],
   "items": [
     {
       "item_number": 1,
-      "title": "Foundation — shared types, interfaces, DB schemas, config",
+      "title": "Foundation — shared types, interfaces, DB schema, config, utilities",
       "wave": 1,
       "files_created": [
         ".opencode/.gitignore",
@@ -98,233 +64,87 @@
         "SPEC.md",
         "api_contract.yaml"
       ],
-      "completed_at": "2026-05-22T01:14:37.139695Z"
+      "completed_at": "2026-05-22T21:16:42.518757Z"
     },
     {
       "item_number": 2,
-      "title": "Product & Category API — CRUD endpoints and logic",
+      "title": "Plants & Distribution Centers — CRUD endpoints and controllers",
       "wave": 2,
       "files_created": [
-        ".coverage",
-        ".opencode/package-lock.json",
-        ".opencode/package.json",
-        ".plan_checkpoint.json",
-        ".progress_log",
-        ".pytest_cache/.gitignore",
-        ".pytest_cache/CACHEDIR.TAG",
-        ".pytest_cache/README.md",
-        ".pytest_cache/v/cache/nodeids",
-        ".pytest_cache/v/cache/stepwise"
+        "backend/.env.example",
+        "backend/README.md",
+        "backend/package.json",
+        "backend/src/app.ts",
+        "backend/src/controllers/distributionCenterController.ts",
+        "backend/src/controllers/plantController.ts",
+        "backend/src/db/index.ts",
+        "backend/src/db/redis.ts",
+        "backend/src/db/schema.sql",
+        "backend/src/db/seed.ts",
+        "backend/src/index.ts",
+        "backend/src/middleware/errorHandler.ts",
+        "backend/src/middleware/validate.ts",
+        "backend/src/models/DistributionCenter.ts",
+        "backend/src/models/Order.ts",
+        "backend/src/models/Plant.ts",
+        "backend/src/routes/distributionCenters.ts",
+        "backend/src/routes/plants.ts",
+        "backend/src/types/index.d.ts",
+        "backend/src/utils/env.ts",
+        "backend/src/utils/logger.ts",
+        "backend/tsconfig.json"
       ],
-      "completed_at": "2026-05-22T01:20:49.971785Z"
+      "completed_at": "2026-05-22T21:25:45.366417Z"
     },
     {
       "item_number": 3,
-      "title": "User & Auth API — registration, login, JWT, user profile",
+      "title": "Orders — CRUD endpoints and business rules",
       "wave": 2,
       "files_created": [
-        "backend/src/models/user.ts",
-        "backend/src/controllers/authController.ts",
-        "backend/src/controllers/userController.ts",
-        "backend/src/routes/auth.ts",
-        "backend/src/routes/users.ts",
-        "backend/src/middleware/auth.ts"
-      ],
-      "completed_at": "2026-05-22T01:23:48.043722Z"
-    },
-    {
-      "item_number": 4,
-      "title": "Cart API — cart CRUD, add/update/remove items",
-      "wave": 2,
-      "files_created": [
-        "backend/src/models/cart.ts",
-        "backend/src/controllers/cartController.ts",
-        "backend/src/routes/cart.ts"
-      ],
-      "completed_at": "2026-05-22T01:28:35.202632Z"
-    },
-    {
-      "item_number": 5,
-      "title": "Order API — order creation, listing, detail",
-      "wave": 2,
-      "files_created": [
-        "backend/src/models/order.ts",
         "backend/src/controllers/orderController.ts",
         "backend/src/routes/orders.ts"
       ],
-      "completed_at": "2026-05-22T01:33:25.099969Z"
+      "completed_at": "2026-05-22T21:26:56.916867Z"
+    },
+    {
+      "item_number": 4,
+      "title": "Metrics — KPIs, trends, and volume endpoints",
+      "wave": 2,
+      "files_created": [
+        "backend/package-lock.json",
+        "backend/src/controllers/metricsController.ts",
+        "backend/src/routes/metrics.ts"
+      ],
+      "completed_at": "2026-05-22T21:33:56.750003Z"
+    },
+    {
+      "item_number": 5,
+      "title": "Backend App Bootstrap — Express app, DB connection, error handling, healthcheck",
+      "wave": 2,
+      "files_created": [
+        "backend/src/app.ts",
+        "backend/src/index.ts",
+        "backend/src/db/index.ts",
+        "backend/src/middleware/errorHandler.ts",
+        "backend/package.json",
+        "backend/tsconfig.json",
+        "backend/README.md"
+      ],
+      "completed_at": "2026-05-22T21:36:54.247906Z"
     },
     {
       "item_number": 6,
-      "title": "Backend Core — Express app, server, error handling, logging",
-      "wave": 3,
-      "files_created": [
-        "backend/src/app.ts",
-        "backend/src/server.ts",
-        "backend/src/middleware/errorHandler.ts"
-      ],
-      "completed_at": "2026-05-22T01:37:18.612600Z"
-    },
-    {
-      "item_number": 7,
       "title": "Infrastructure & Deployment",
-      "wave": 4,
+      "wave": 3,
       "files_created": [
         "docker-compose.yml",
         "run.sh",
         "README.md",
         ".dockerignore",
         ".gitignore",
-        "backend/.env.example",
-        "backend/Dockerfile",
-        "backend/package.json",
-        "backend/src/db/migrate.ts",
-        "backend/tsconfig.json"
+        "backend/Dockerfile"
       ],
-      "completed_at": "2026-05-22T01:42:15.918454Z"
-    },
-    {
-      "item_number": 9,
-      "title": "Barra de Navegación Principal Component",
-      "wave": 5,
-      "files_created": [
-        "frontend/src/components/ui/BarraDeNavegacionPrincipal.tsx",
-        "frontend/src/styles/tokens.ts"
-      ],
-      "completed_at": "2026-05-22T01:47:52.086598Z"
-    },
-    {
-      "item_number": 10,
-      "title": "CartProductRow Component",
-      "wave": 5,
-      "files_created": [
-        "frontend/src/components/ui/CartProductRow.tsx",
-        "frontend/src/types/cart.ts",
-        "frontend/src/types/product.ts"
-      ],
-      "completed_at": "2026-05-22T01:49:19.518394Z"
-    },
-    {
-      "item_number": 11,
-      "title": "OrderSummaryCard Component",
-      "wave": 5,
-      "files_created": [
-        "frontend/src/components/ui/OrderSummaryCard.tsx"
-      ],
-      "completed_at": "2026-05-22T01:50:51.644293Z"
-    },
-    {
-      "item_number": 12,
-      "title": "CouponField Component",
-      "wave": 5,
-      "files_created": [
-        "frontend/src/components/ui/CouponField.tsx"
-      ],
-      "completed_at": "2026-05-22T01:52:30.811621Z"
-    },
-    {
-      "item_number": 13,
-      "title": "PrimaryButton Component",
-      "wave": 5,
-      "files_created": [
-        "frontend/src/components/ui/PrimaryButton.tsx"
-      ],
-      "completed_at": "2026-05-22T01:53:34.231404Z"
-    },
-    {
-      "item_number": 14,
-      "title": "SecondaryButton Component",
-      "wave": 5,
-      "files_created": [
-        ".pytest_cache/v/cache/lastfailed",
-        "backend/src/controllers/authController.test.ts",
-        "backend/src/controllers/userController.test.ts",
-        "backend/src/middleware/auth.test.ts",
-        "backend/src/models/user.test.ts",
-        "backend/src/routes/auth.test.ts",
-        "backend/src/routes/users.test.ts",
-        "coverage.json",
-        "run_tests.sh",
-        "tests/test_order_controller.py",
-        "tests/test_order_model.py",
-        "tests/test_orders_routes.py"
-      ],
-      "completed_at": "2026-05-22T01:54:45.259097Z"
-    },
-    {
-      "item_number": 15,
-      "title": "QuantitySelector Component",
-      "wave": 5,
-      "files_created": [
-        "frontend/src/components/ui/QuantitySelector.tsx"
-      ],
-      "completed_at": "2026-05-22T01:56:45.905364Z"
-    },
-    {
-      "item_number": 16,
-      "title": "TrustMessage Component",
-      "wave": 5,
-      "files_created": [
-        "frontend/src/components/ui/TrustMessage.tsx"
-      ],
-      "completed_at": "2026-05-22T01:58:04.525126Z"
-    },
-    {
-      "item_number": 17,
-      "title": "RecommendationCard Component",
-      "wave": 5,
-      "files_created": [
-        "frontend/src/components/ui/RecommendationCard.tsx"
-      ],
-      "completed_at": "2026-05-22T01:59:27.644907Z"
-    },
-    {
-      "item_number": 18,
-      "title": "Design Tokens File",
-      "wave": 5,
-      "files_created": [
-        "frontend/src/styles/tokens.ts"
-      ],
-      "completed_at": "2026-05-22T02:00:33.336970Z"
-    },
-    {
-      "item_number": 19,
-      "title": "API Hooks",
-      "wave": 5,
-      "files_created": [
-        "frontend/src/hooks/useCart.ts",
-        "frontend/src/hooks/useProducts.ts",
-        "frontend/src/hooks/useCategories.ts",
-        "frontend/src/hooks/useUser.ts",
-        "frontend/src/hooks/useOrders.ts",
-        "frontend/src/types/category.ts",
-        "frontend/src/types/order.ts",
-        "frontend/src/types/user.ts"
-      ],
-      "completed_at": "2026-05-22T02:06:06.498304Z"
-    },
-    {
-      "item_number": 8,
-      "title": "Carrito de Compras Page",
-      "wave": 6,
-      "files_created": [
-        "frontend/src/pages/CartPage.tsx"
-      ],
-      "completed_at": "2026-05-22T02:07:32.322041Z"
-    },
-    {
-      "item_number": "fix-integration-1",
-      "title": "Integration fix: Contract defines POST /api/auth/login but no matching backend route found",
-      "wave": 7,
-      "files_created": [],
-      "completed_at": "2026-05-22T02:10:53.750351Z"
-    },
-    {
-      "item_number": "fix-integration-3",
-      "title": "Integration fix: Contract defines GET /api/cart but no matching backend route found",
-      "wave": 7,
-      "files_created": [],
-      "completed_at": "2026-05-22T02:14:28.736031Z"
+      "completed_at": "2026-05-22T21:39:00.422309Z"
     }
   ]
 }

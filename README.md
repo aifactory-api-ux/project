@@ -1,12 +1,19 @@
-# CatStore - E-Commerce Platform for Cat Products
+# DistroViz
 
-A specialized online store for cat products, built with Node.js 20, Express 4.18, PostgreSQL 15, and Redis 7.
+Dashboard web para la visualización de la distribución de producto terminado desde una fábrica hacia sus sucursales.
+
+## Stack Tecnológico
+
+- **Backend:** Node.js 20, Express.js
+- **Base de Datos:** PostgreSQL 15
+- **Cache:** Redis 7
+- **Frontend:** React 18 (separate repository)
+- **Infraestructura:** Docker, Docker Compose
 
 ## Prerequisites
 
-- **Docker Engine** v24.x or higher
-- **Docker Compose** v2.x or higher
-- **Ports**: 23001 (backend), 25432 (postgres), 26379 (redis)
+- Docker v24.0.7+
+- Docker Compose v2.24.2+
 
 ## Quick Start
 
@@ -14,173 +21,137 @@ A specialized online store for cat products, built with Node.js 20, Express 4.18
 ./run.sh
 ```
 
-This script will:
-1. Create `.env` file from `.env.example` if not present
-2. Validate Docker installation
-3. Build and start all services
-4. Wait for services to become healthy
-5. Display access URLs
+Este comando:
+1. Crea automáticamente `.env` desde `.env.example` (si no existe)
+2. Verifica que Docker esté disponible
+3. Construye e inicia todos los servicios
+4. Espera a que todos los servicios estén healthy
+5. Muestra las URLs de acceso
 
 ## Services
 
-| Service    | Port  | URL                          |
-|------------|-------|------------------------------|
-| Backend API | 23001 | http://localhost:23001       |
-| PostgreSQL  | 25432 | localhost:25432              |
-| Redis       | 26379 | localhost:26379             |
+| Service   | Port  | Description                    |
+|-----------|-------|--------------------------------|
+| backend   | 23001 | API REST Node.js/Express       |
+| postgres  | 25432 | PostgreSQL 15 database         |
+| redis     | 26379 | Redis 7 cache                  |
 
 ## API Endpoints
 
 ### Health Check
-```
-GET /health
-```
-
-### Products
-```
-GET    /api/products          - List all products
-GET    /api/products/:id      - Get product by ID
-POST   /api/products          - Create product
-PUT    /api/products/:id      - Update product
-DELETE /api/products/:id      - Delete product
+```bash
+curl http://localhost:23001/health
 ```
 
-### Categories
-```
-GET    /api/categories         - List all categories
-GET    /api/categories/:id     - Get category by ID
-POST   /api/categories         - Create category
-PUT    /api/categories/:id     - Update category
-DELETE /api/categories/:id     - Delete category
-```
-
-### Authentication
-```
-POST /api/auth/register        - Register new user
-POST /api/auth/login           - Login user
+### Plants
+```bash
+GET    /api/plants           # List all plants
+GET    /api/plants/:id       # Get plant by ID
+POST   /api/plants           # Create plant
+PUT    /api/plants/:id       # Update plant
+DELETE /api/plants/:id       # Delete plant
 ```
 
-### User
-```
-GET /api/users/me              - Get current user (JWT required)
-```
-
-### Cart (JWT required)
-```
-GET    /api/cart               - Get user's cart
-POST   /api/cart/items         - Add item to cart
-PUT    /api/cart/items/:productId - Update cart item
-DELETE /api/cart/items/:productId - Remove from cart
+### Distribution Centers
+```bash
+GET    /api/distribution-centers           # List all distribution centers
+GET    /api/distribution-centers/:id       # Get distribution center by ID
+POST   /api/distribution-centers            # Create distribution center
+PUT    /api/distribution-centers/:id       # Update distribution center
+DELETE /api/distribution-centers/:id       # Delete distribution center
 ```
 
-### Orders (JWT required)
+### Orders
+```bash
+GET    /api/orders           # List all orders
+GET    /api/orders/:id       # Get order by ID
+POST   /api/orders           # Create order
+PUT    /api/orders/:id       # Update order
+DELETE /api/orders/:id       # Delete order
 ```
-POST /api/orders               - Create order
-GET  /api/orders               - List user's orders
-GET  /api/orders/:id           - Get order details
+
+### Metrics
+```bash
+GET    /api/metrics/kpis           # Get KPI metrics
+GET    /api/metrics/trends          # Get trend data (last 6 months)
+GET    /api/metrics/volume-by-plant # Get volume grouped by plant
 ```
 
 ## Environment Variables
 
-All environment variables are documented in `backend/.env.example`:
+El archivo `.env.example` contiene todas las variables requeridas:
 
-| Variable           | Description                     | Default                    |
-|--------------------|--------------------------------|----------------------------|
-| NODE_ENV           | Environment mode               | development                |
-| PORT               | Backend listening port         | 23001                      |
-| POSTGRES_HOST      | PostgreSQL host                | postgres                   |
-| POSTGRES_PORT      | PostgreSQL port                | 5432                       |
-| POSTGRES_DB        | Database name                  | catstore                   |
-| POSTGRES_USER      | Database user                  | postgres                   |
-| POSTGRES_PASSWORD  | Database password              | postgres123                |
-| REDIS_HOST         | Redis host                     | redis                      |
-| REDIS_PORT         | Redis port                     | 6379                       |
-| REDIS_URL          | Redis connection URL            | redis://redis:6379         |
-| JWT_SECRET         | JWT signing secret             | (must be set in production)|
-| JWT_EXPIRES_IN     | JWT expiration time            | 24h                        |
-| BCRYPT_SALT_ROUNDS | Password hashing rounds         | 12                         |
+| Variable        | Descripción                           | Valor por defecto                                    |
+|-----------------|---------------------------------------|------------------------------------------------------|
+| POSTGRES_USER   | Usuario de PostgreSQL                 | distroviz                                            |
+| POSTGRES_PASSWORD | Contraseña de PostgreSQL             | distrovizpass                                         |
+| POSTGRES_DB     | Nombre de la base de datos            | distroviz                                             |
+| PORT            | Puerto del servidor backend           | 23001                                                |
+| DATABASE_URL    | Connection string de PostgreSQL       | postgres://distroviz:distrovizpass@postgres:5432/distroviz |
+| REDIS_URL       | URL de Redis                          | redis://redis:6379                                    |
+| JWT_SECRET      | Clave secreta para JWT                | (cambiar en producción)                               |
+| JWT_EXPIRES_IN  | Tiempo de expiración del token        | 1d                                                   |
+| NODE_ENV        | Entorno de ejecución                   | development                                          |
 
-## Development
-
-### Manual Start (without Docker)
-
-1. Install dependencies:
-```bash
-cd backend && npm install
-```
-
-2. Set up environment:
-```bash
-cp backend/.env.example backend/.env
-# Edit backend/.env with your settings
-```
-
-3. Run database migrations:
-```bash
-cd backend && npm run migration:run
-```
-
-4. Start the server:
-```bash
-cd backend && npm run dev
-```
-
-## Docker Commands
+## Comandos Docker Compose
 
 ```bash
-# Start services
+# Iniciar servicios
 docker compose up -d
 
-# Stop services
-docker compose down
-
-# View logs
+# Ver logs
 docker compose logs -f
 
-# View specific service logs
-docker compose logs -f backend
+# Detener servicios
+docker compose down
 
-# Rebuild services
-docker compose up -d --build
-
-# Restart services
+# Reiniciar servicios
 docker compose restart
 
-# Remove everything (including volumes)
-docker compose down -v
+# Rebuild sin cache
+docker compose up -d --build --no-cache
 ```
 
-## Architecture
+## Base de Datos
 
-- **Backend**: Express.js REST API with TypeScript
-- **Database**: PostgreSQL 15 for persistent data
-- **Cache**: Redis 7 for caching and sessions
-- **Containerization**: Docker with multi-stage builds
+El backend ejecuta automáticamente:
+- Migraciones (creación de tablas)
+- Seed de datos iniciales (4 plantas, 5 centros de distribución, 30 órdenes)
 
-## Project Structure
+### Conectar a PostgreSQL
+
+```bash
+docker compose exec postgres psql -U distroviz -d distroviz
+```
+
+## Desarrollo
+
+### Estructura del Proyecto
 
 ```
-.
 ├── backend/
 │   ├── src/
-│   │   ├── app.ts            # Express app
-│   │   ├── server.ts         # Server entry point
-│   │   ├── routes/           # API routes
-│   │   ├── controllers/     # Business logic
-│   │   ├── models/           # Data models
-│   │   ├── middleware/       # Express middleware
-│   │   ├── db/               # Database connections
-│   │   ├── utils/            # Utilities
-│   │   └── types/            # TypeScript types
+│   │   ├── controllers/   # Controladores de rutas
+│   │   ├── db/           # Schema y seed de BD
+│   │   ├── middleware/    # Middleware Express
+│   │   ├── models/       # Modelos de datos
+│   │   ├── routes/       # Definición de rutas
+│   │   ├── types/        # Tipos TypeScript
+│   │   ├── utils/        # Utilidades
+│   │   ├── app.ts        # Configuración Express
+│   │   └── index.ts      # Punto de entrada
 │   ├── Dockerfile
-│   └── .env.example
+│   ├── package.json
+│   └── tsconfig.json
 ├── docker-compose.yml
 ├── run.sh
+├── .env.example
 ├── .gitignore
-├── .dockerignore
-└── README.md
+└── .dockerignore
 ```
 
-## License
+## Seguridad
 
-MIT
+- No exponer `.env` en el repositorio
+- Usar secretos fuertes en producción
+- Configurar CORS apropiadamente para producción

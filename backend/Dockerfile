@@ -1,34 +1,29 @@
-FROM node:20-alpine AS builder
+FROM node:20.11.1-alpine3.19 AS builder
 
 WORKDIR /app
 
 COPY package*.json ./
-
-RUN npm ci
+RUN npm ci --only=production && npm cache clean --force
 
 COPY tsconfig.json ./
 COPY src ./src
 
 RUN npm run build
 
-FROM node:20-alpine AS runtime
+FROM node:20.11.1-alpine3.19
+
+RUN addgroup -g 1001 -S nodejs && adduser -S nodejs -u 1001
 
 WORKDIR /app
 
-RUN addgroup -g 1001 -S nodejs && \
-    adduser -S nodejs -u 1001
+RUN apk add --no-cache curl
 
-COPY package*.json ./
-
-RUN npm ci --only=production && \
-    npm cache clean --force
-
+COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/dist ./dist
-
-RUN chown -R nodejs:nodejs /app
+COPY --from=builder /app/package*.json ./
 
 USER nodejs
 
 EXPOSE 23001
 
-CMD ["sh", "-c", "npm run migration:run && node dist/server.js"]
+CMD ["sh", "-c", "node dist/index.js"]

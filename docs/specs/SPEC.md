@@ -3,167 +3,351 @@
 ## 1. TECHNOLOGY STACK
 
 - **Backend**
-  - Node.js v20.x
-  - Express v4.18.x
-  - PostgreSQL v15.x
-  - Redis v7.x
+  - Node.js v20.11.1
+  - Express.js v4.18.2
+  - PostgreSQL v15.5
+  - Redis v7.2.4
 - **Frontend**
-  - React v18.x
-  - TypeScript v5.x
+  - React v18.2.0
+  - TypeScript v5.3.3
 - **Infrastructure**
-  - Docker Engine v24.x
-  - docker-compose v2.x
+  - Docker v24.0.7
+  - Docker Compose v2.24.2
+  - Kubernetes v1.29 (manifests provided for deployment)
+  - GitLab CI/CD (gitlab-ci.yml)
+- **Other**
+  - dotenv v16.4.5 (backend)
+  - pg v8.11.3 (PostgreSQL client for Node.js)
+  - ioredis v5.4.1 (Redis client for Node.js)
+  - cors v2.8.5 (Express CORS middleware)
+  - express-validator v7.0.1 (backend validation)
+  - axios v1.6.7 (frontend API calls)
+  - react-router-dom v6.22.3 (frontend routing)
+  - styled-components v6.1.8 (frontend styling)
+  - eslint v8.56.0, prettier v3.2.5 (code quality)
 
 ---
 
 ## 2. DATA CONTRACTS
 
-### TypeScript Interfaces (frontend & backend shared)
+### Backend (TypeScript interface definitions)
 
 ```typescript
-// Product
+// backend/src/models/Branch.ts
+export interface Branch {
+  id: number;
+  name: string;
+  address: string;
+  managerName: string;
+  createdAt: string; // ISO8601
+  updatedAt: string; // ISO8601
+}
+
+// backend/src/models/Product.ts
 export interface Product {
   id: number;
   name: string;
-  description: string;
-  price: number;
-  imageUrl: string;
-  stock: number;
-  categoryId: number;
-  createdAt: string; // ISO8601
-  updatedAt: string; // ISO8601
-}
-
-// Category
-export interface Category {
-  id: number;
-  name: string;
+  sku: string;
   description: string;
   createdAt: string; // ISO8601
   updatedAt: string; // ISO8601
 }
 
-// User
-export interface User {
+// backend/src/models/Dispatch.ts
+export interface Dispatch {
   id: number;
-  email: string;
-  passwordHash: string;
-  name: string;
-  address: string;
-  isAdmin: boolean;
-  createdAt: string; // ISO8601
-  updatedAt: string; // ISO8601
-}
-
-// CartItem
-export interface CartItem {
+  branchId: number;
   productId: number;
   quantity: number;
-}
-
-// Cart
-export interface Cart {
-  id: number;
-  userId: number;
-  items: CartItem[];
+  dispatchedAt: string; // ISO8601
+  createdBy: string;
   createdAt: string; // ISO8601
   updatedAt: string; // ISO8601
 }
 
-// Order
-export interface Order {
+// backend/src/models/User.ts
+export interface User {
   id: number;
-  userId: number;
-  items: CartItem[];
-  total: number;
-  status: 'pending' | 'paid' | 'shipped' | 'delivered' | 'cancelled';
+  username: string;
+  passwordHash: string;
+  role: 'admin' | 'branch_manager';
+  branchId?: number;
   createdAt: string; // ISO8601
   updatedAt: string; // ISO8601
 }
 ```
 
-### PostgreSQL Table Schemas
+### Frontend (TypeScript interface definitions)
 
-- **products**: id (PK, serial), name (varchar), description (text), price (numeric), image_url (varchar), stock (int), category_id (FK), created_at (timestamp), updated_at (timestamp)
-- **categories**: id (PK, serial), name (varchar), description (text), created_at (timestamp), updated_at (timestamp)
-- **users**: id (PK, serial), email (varchar), password_hash (varchar), name (varchar), address (text), is_admin (boolean), created_at (timestamp), updated_at (timestamp)
-- **carts**: id (PK, serial), user_id (FK), created_at (timestamp), updated_at (timestamp)
-- **cart_items**: cart_id (FK), product_id (FK), quantity (int)
-- **orders**: id (PK, serial), user_id (FK), total (numeric), status (varchar), created_at (timestamp), updated_at (timestamp)
-- **order_items**: order_id (FK), product_id (FK), quantity (int)
+```typescript
+// frontend/src/types/Branch.ts
+export interface Branch {
+  id: number;
+  name: string;
+  address: string;
+  managerName: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// frontend/src/types/Product.ts
+export interface Product {
+  id: number;
+  name: string;
+  sku: string;
+  description: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// frontend/src/types/Dispatch.ts
+export interface Dispatch {
+  id: number;
+  branchId: number;
+  productId: number;
+  quantity: number;
+  dispatchedAt: string;
+  createdBy: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// frontend/src/types/User.ts
+export interface User {
+  id: number;
+  username: string;
+  role: 'admin' | 'branch_manager';
+  branchId?: number;
+  createdAt: string;
+  updatedAt: string;
+}
+```
 
 ---
 
 ## 3. API ENDPOINTS
 
-### Product Endpoints
+### Authentication
+
+- **POST /api/auth/login**
+  - Request body:
+    ```json
+    {
+      "username": "string",
+      "password": "string"
+    }
+    ```
+  - Response:
+    ```json
+    {
+      "token": "string",
+      "user": { /* User */ }
+    }
+    ```
+
+- **POST /api/auth/logout**
+  - Request body: _none_
+  - Response:
+    ```json
+    { "success": true }
+    ```
+
+### Branches
+
+- **GET /api/branches**
+  - Response:
+    ```json
+    { "branches": [ /* Branch[] */ ] }
+    ```
+
+- **GET /api/branches/:id**
+  - Response:
+    ```json
+    { "branch": /* Branch */ }
+    ```
+
+- **POST /api/branches**
+  - Request body:
+    ```json
+    {
+      "name": "string",
+      "address": "string",
+      "managerName": "string"
+    }
+    ```
+  - Response:
+    ```json
+    { "branch": /* Branch */ }
+    ```
+
+- **PUT /api/branches/:id**
+  - Request body:
+    ```json
+    {
+      "name": "string",
+      "address": "string",
+      "managerName": "string"
+    }
+    ```
+  - Response:
+    ```json
+    { "branch": /* Branch */ }
+    ```
+
+- **DELETE /api/branches/:id**
+  - Response:
+    ```json
+    { "success": true }
+    ```
+
+### Products
 
 - **GET /api/products**
-  - Response: `Product[]`
+  - Response:
+    ```json
+    { "products": [ /* Product[] */ ] }
+    ```
+
 - **GET /api/products/:id**
-  - Response: `Product`
+  - Response:
+    ```json
+    { "product": /* Product */ }
+    ```
+
 - **POST /api/products**
-  - Request: `{ name: string; description: string; price: number; imageUrl: string; stock: number; categoryId: number }`
-  - Response: `Product`
+  - Request body:
+    ```json
+    {
+      "name": "string",
+      "sku": "string",
+      "description": "string"
+    }
+    ```
+  - Response:
+    ```json
+    { "product": /* Product */ }
+    ```
+
 - **PUT /api/products/:id**
-  - Request: `{ name?: string; description?: string; price?: number; imageUrl?: string; stock?: number; categoryId?: number }`
-  - Response: `Product`
+  - Request body:
+    ```json
+    {
+      "name": "string",
+      "sku": "string",
+      "description": "string"
+    }
+    ```
+  - Response:
+    ```json
+    { "product": /* Product */ }
+    ```
+
 - **DELETE /api/products/:id**
-  - Response: `{ success: boolean }`
+  - Response:
+    ```json
+    { "success": true }
+    ```
 
-### Category Endpoints
+### Dispatches
 
-- **GET /api/categories**
-  - Response: `Category[]`
-- **GET /api/categories/:id**
-  - Response: `Category`
-- **POST /api/categories**
-  - Request: `{ name: string; description: string }`
-  - Response: `Category`
-- **PUT /api/categories/:id**
-  - Request: `{ name?: string; description?: string }`
-  - Response: `Category`
-- **DELETE /api/categories/:id**
-  - Response: `{ success: boolean }`
+- **GET /api/dispatches**
+  - Query params: `branchId?: number`, `productId?: number`, `fromDate?: string`, `toDate?: string`
+  - Response:
+    ```json
+    { "dispatches": [ /* Dispatch[] */ ] }
+    ```
 
-### User Endpoints
+- **GET /api/dispatches/:id**
+  - Response:
+    ```json
+    { "dispatch": /* Dispatch */ }
+    ```
 
-- **POST /api/auth/register**
-  - Request: `{ email: string; password: string; name: string; address: string }`
-  - Response: `User`
-- **POST /api/auth/login**
-  - Request: `{ email: string; password: string }`
-  - Response: `{ token: string; user: User }`
-- **GET /api/users/me**
-  - Auth required (JWT)
-  - Response: `User`
+- **POST /api/dispatches**
+  - Request body:
+    ```json
+    {
+      "branchId": 1,
+      "productId": 1,
+      "quantity": 100,
+      "dispatchedAt": "2024-06-01T12:00:00Z"
+    }
+    ```
+  - Response:
+    ```json
+    { "dispatch": /* Dispatch */ }
+    ```
 
-### Cart Endpoints
+- **PUT /api/dispatches/:id**
+  - Request body:
+    ```json
+    {
+      "branchId": 1,
+      "productId": 1,
+      "quantity": 100,
+      "dispatchedAt": "2024-06-01T12:00:00Z"
+    }
+    ```
+  - Response:
+    ```json
+    { "dispatch": /* Dispatch */ }
+    ```
 
-- **GET /api/cart**
-  - Auth required (JWT)
-  - Response: `Cart`
-- **POST /api/cart/items**
-  - Request: `{ productId: number; quantity: number }`
-  - Response: `Cart`
-- **PUT /api/cart/items/:productId**
-  - Request: `{ quantity: number }`
-  - Response: `Cart`
-- **DELETE /api/cart/items/:productId**
-  - Response: `Cart`
+- **DELETE /api/dispatches/:id**
+  - Response:
+    ```json
+    { "success": true }
+    ```
 
-### Order Endpoints
+### Users
 
-- **POST /api/orders**
-  - Auth required (JWT)
-  - Request: `{ items: CartItem[] }`
-  - Response: `Order`
-- **GET /api/orders**
-  - Auth required (JWT)
-  - Response: `Order[]`
-- **GET /api/orders/:id**
-  - Auth required (JWT)
-  - Response: `Order`
+- **GET /api/users**
+  - Response:
+    ```json
+    { "users": [ /* User[] */ ] }
+    ```
+
+- **GET /api/users/:id**
+  - Response:
+    ```json
+    { "user": /* User */ }
+    ```
+
+- **POST /api/users**
+  - Request body:
+    ```json
+    {
+      "username": "string",
+      "password": "string",
+      "role": "admin" | "branch_manager",
+      "branchId": 1
+    }
+    ```
+  - Response:
+    ```json
+    { "user": /* User */ }
+    ```
+
+- **PUT /api/users/:id**
+  - Request body:
+    ```json
+    {
+      "username": "string",
+      "password": "string",
+      "role": "admin" | "branch_manager",
+      "branchId": 1
+    }
+    ```
+  - Response:
+    ```json
+    { "user": /* User */ }
+    ```
+
+- **DELETE /api/users/:id**
+  - Response:
+    ```json
+    { "success": true }
+    ```
 
 ---
 
@@ -171,126 +355,148 @@ export interface Order {
 
 ### PORT TABLE
 
-| Service    | Listening Port | Path                  |
-|------------|---------------|-----------------------|
-| backend    | 23001         | backend/              |
-| frontend   | 23002         | frontend/             |
-| postgres   | 25432         | (docker-compose only) |
-| redis      | 26379         | (docker-compose only) |
+| Service      | Listening Port | Path                    |
+|--------------|---------------|-------------------------|
+| api-server   | 23001         | backend/                |
+| redis        | 26379         | (Docker image)          |
+| postgres     | 25432         | (Docker image)          |
+| frontend     | 24000         | frontend/               |
 
 ### FILE TREE
 
 ```
 .
-├── backend/                           # Express API source code
+├── backend/
+│   ├── Dockerfile                # Docker build for backend API server (EXPOSE 23001)
+│   ├── package.json              # Node.js dependencies and scripts
+│   ├── tsconfig.json             # TypeScript configuration
+│   ├── .env.example              # Backend environment variables template
 │   ├── src/
-│   │   ├── app.ts                     # Express app entry point
-│   │   ├── server.ts                  # HTTP server bootstrap (EXPOSE 23001)
+│   │   ├── index.ts              # Backend entry point (listens on 23001)
+│   │   ├── app.ts                # Express app setup
 │   │   ├── routes/
-│   │   │   ├── products.ts            # Product endpoints
-│   │   │   ├── categories.ts          # Category endpoints
-│   │   │   ├── auth.ts                # Auth endpoints
-│   │   │   ├── users.ts               # User endpoints
-│   │   │   ├── cart.ts                # Cart endpoints
-│   │   │   └── orders.ts              # Order endpoints
-│   │   ├── models/
-│   │   │   ├── product.ts             # Product model
-│   │   │   ├── category.ts            # Category model
-│   │   │   ├── user.ts                # User model
-│   │   │   ├── cart.ts                # Cart model
-│   │   │   └── order.ts               # Order model
+│   │   │   ├── auth.ts           # Auth endpoints
+│   │   │   ├── branches.ts       # Branch endpoints
+│   │   │   ├── products.ts       # Product endpoints
+│   │   │   ├── dispatches.ts     # Dispatch endpoints
+│   │   │   └── users.ts          # User endpoints
 │   │   ├── controllers/
-│   │   │   ├── productController.ts   # Product logic
-│   │   │   ├── categoryController.ts  # Category logic
-│   │   │   ├── authController.ts      # Auth logic
-│   │   │   ├── userController.ts      # User logic
-│   │   │   ├── cartController.ts      # Cart logic
-│   │   │   └── orderController.ts     # Order logic
-│   │   ├── middleware/
-│   │   │   ├── auth.ts                # JWT middleware
-│   │   │   └── errorHandler.ts        # Error handling
+│   │   │   ├── authController.ts
+│   │   │   ├── branchController.ts
+│   │   │   ├── productController.ts
+│   │   │   ├── dispatchController.ts
+│   │   │   └── userController.ts
+│   │   ├── models/
+│   │   │   ├── Branch.ts         # Branch interface
+│   │   │   ├── Product.ts        # Product interface
+│   │   │   ├── Dispatch.ts       # Dispatch interface
+│   │   │   └── User.ts           # User interface
 │   │   ├── db/
-│   │   │   ├── index.ts               # DB connection (PostgreSQL)
-│   │   │   └── redis.ts               # Redis connection
+│   │   │   ├── index.ts          # DB connection (PostgreSQL)
+│   │   │   └── redis.ts          # Redis connection
+│   │   ├── middleware/
+│   │   │   ├── auth.ts           # Auth middleware (JWT)
+│   │   │   └── errorHandler.ts   # Error handling middleware
 │   │   ├── utils/
-│   │   │   ├── jwt.ts                 # JWT helpers
-│   │   │   └── password.ts            # Password hashing
+│   │   │   ├── jwt.ts            # JWT utilities
+│   │   │   └── validators.ts     # Express-validator schemas
 │   │   └── types/
-│   │       ├── product.ts             # Product TypeScript types
-│   │       ├── category.ts            # Category TypeScript types
-│   │       ├── user.ts                # User TypeScript types
-│   │       ├── cart.ts                # Cart TypeScript types
-│   │       └── order.ts               # Order TypeScript types
-│   ├── Dockerfile                     # Backend Dockerfile (EXPOSE 23001)
-│   └── .env.example                   # Backend env vars template
-├── frontend/                          # React app source code
+│   │       └── index.d.ts        # Global TypeScript types
+│   └── README.md                 # Backend documentation
+├── frontend/
+│   ├── Dockerfile                # Docker build for frontend (EXPOSE 24000)
+│   ├── package.json              # React/TypeScript dependencies
+│   ├── tsconfig.json             # TypeScript configuration
+│   ├── .env.example              # Frontend environment variables template
 │   ├── public/
-│   │   └── index.html                 # HTML entry point (loads /src/main.tsx)
+│   │   ├── index.html            # HTML entry point (loads /src/main.tsx)
+│   │   └── favicon.ico
 │   ├── src/
-│   │   ├── main.tsx                   # React entry point
-│   │   ├── App.tsx                    # App root
+│   │   ├── main.tsx              # React entry point
+│   │   ├── App.tsx               # Main App component
 │   │   ├── api/
-│   │   │   ├── products.ts            # Product API client
-│   │   │   ├── categories.ts          # Category API client
-│   │   │   ├── auth.ts                # Auth API client
-│   │   │   ├── cart.ts                # Cart API client
-│   │   │   └── orders.ts              # Order API client
-│   │   ├── hooks/
-│   │   │   ├── useProducts.ts         # Product state hook
-│   │   │   ├── useCategories.ts       # Category state hook
-│   │   │   ├── useAuth.ts             # Auth state hook
-│   │   │   ├── useCart.ts             # Cart state hook
-│   │   │   └── useOrders.ts           # Order state hook
-│   │   ├── components/
-│   │   │   ├── ProductList.tsx        # Product list UI
-│   │   │   ├── ProductCard.tsx        # Product card UI
-│   │   │   ├── CategoryList.tsx       # Category list UI
-│   │   │   ├── Cart.tsx               # Cart UI
-│   │   │   ├── OrderList.tsx          # Order list UI
-│   │   │   ├── LoginForm.tsx          # Login form
-│   │   │   ├── RegisterForm.tsx       # Register form
-│   │   │   └── Navbar.tsx             # Navigation bar
-│   │   ├── styles/
-│   │   │   └── tokens.ts              # Design tokens (see §9)
+│   │   │   ├── axios.ts          # Axios instance with baseURL
+│   │   │   ├── auth.ts           # Auth API functions
+│   │   │   ├── branches.ts       # Branch API functions
+│   │   │   ├── products.ts       # Product API functions
+│   │   │   ├── dispatches.ts     # Dispatch API functions
+│   │   │   └── users.ts          # User API functions
 │   │   ├── types/
-│   │   │   ├── product.ts             # Product TypeScript types
-│   │   │   ├── category.ts            # Category TypeScript types
-│   │   │   ├── user.ts                # User TypeScript types
-│   │   │   ├── cart.ts                # Cart TypeScript types
-│   │   │   └── order.ts               # Order TypeScript types
-│   ├── Dockerfile                     # Frontend Dockerfile (EXPOSE 23002)
-│   └── .env.example                   # Frontend env vars template
-├── docker-compose.yml                 # Multi-service orchestration
-├── run.sh                             # Startup script for local dev
-├── .gitignore                         # Git ignore rules
-├── README.md                          # Project documentation
+│   │   │   ├── Branch.ts         # Branch interface
+│   │   │   ├── Product.ts        # Product interface
+│   │   │   ├── Dispatch.ts       # Dispatch interface
+│   │   │   └── User.ts           # User interface
+│   │   ├── hooks/
+│   │   │   ├── useAuth.ts        # Auth state hook
+│   │   │   ├── useBranches.ts    # Branches state hook
+│   │   │   ├── useProducts.ts    # Products state hook
+│   │   │   ├── useDispatches.ts  # Dispatches state hook
+│   │   │   └── useUsers.ts       # Users state hook
+│   │   ├── components/
+│   │   │   ├── Auth/
+│   │   │   │   ├── LoginForm.tsx
+│   │   │   │   └── LogoutButton.tsx
+│   │   │   ├── Branch/
+│   │   │   │   ├── BranchList.tsx
+│   │   │   │   ├── BranchForm.tsx
+│   │   │   │   └── BranchDetails.tsx
+│   │   │   ├── Product/
+│   │   │   │   ├── ProductList.tsx
+│   │   │   │   ├── ProductForm.tsx
+│   │   │   │   └── ProductDetails.tsx
+│   │   │   ├── Dispatch/
+│   │   │   │   ├── DispatchList.tsx
+│   │   │   │   ├── DispatchForm.tsx
+│   │   │   │   └── DispatchDetails.tsx
+│   │   │   ├── User/
+│   │   │   │   ├── UserList.tsx
+│   │   │   │   ├── UserForm.tsx
+│   │   │   │   └── UserDetails.tsx
+│   │   │   └── Layout/
+│   │   │       ├── Navbar.tsx
+│   │   │       └── Sidebar.tsx
+│   │   ├── styles/
+│   │   │   ├── tokens.ts         # Design tokens (see §9)
+│   │   │   └── global.ts         # Global styled-components styles
+│   │   └── pages/
+│   │       ├── Dashboard.tsx
+│   │       ├── Branches.tsx
+│   │       ├── Products.tsx
+│   │       ├── Dispatches.tsx
+│   │       └── Users.tsx
+│   └── README.md                 # Frontend documentation
+├── docker-compose.yml            # Multi-service orchestration (see PORT TABLE)
+├── .gitignore                    # Ignore node_modules, build, .env, etc.
+├── README.md                     # Project overview and setup
+├── run.sh                        # Startup script for local development
+└── k8s/
+    ├── backend-deployment.yaml   # Kubernetes deployment for backend
+    ├── frontend-deployment.yaml  # Kubernetes deployment for frontend
+    ├── postgres-deployment.yaml  # Kubernetes deployment for PostgreSQL
+    ├── redis-deployment.yaml     # Kubernetes deployment for Redis
+    └── ingress.yaml              # Ingress configuration
 ```
 
 ---
 
 ## 5. ENVIRONMENT VARIABLES
 
-### backend/.env.example
+### Backend (.env.example)
 
-```
-PORT=23001
-DATABASE_URL=postgresql://postgres:postgres@postgres:5432/project
-REDIS_URL=redis://redis:6379
-JWT_SECRET=supersecretkey
-```
+| Name                | Type   | Description                                 | Example Value           |
+|---------------------|--------|---------------------------------------------|------------------------|
+| PORT                | number | Express listening port                      | 23001                  |
+| DATABASE_URL        | string | PostgreSQL connection string                | postgres://user:pass@postgres:5432/distroviz |
+| REDIS_URL           | string | Redis connection string                     | redis://redis:6379     |
+| JWT_SECRET          | string | JWT signing secret                          | supersecretkey         |
+| JWT_EXPIRES_IN      | string | JWT expiration duration                     | 1d                     |
+| NODE_ENV            | string | Node environment                            | development            |
 
-- `PORT` (number): Express server port. Example: `23001`
-- `DATABASE_URL` (string): PostgreSQL connection string. Example: `postgresql://postgres:postgres@postgres:5432/project`
-- `REDIS_URL` (string): Redis connection string. Example: `redis://redis:6379`
-- `JWT_SECRET` (string): JWT signing secret. Example: `supersecretkey`
+### Frontend (.env.example)
 
-### frontend/.env.example
-
-```
-VITE_API_URL=http://localhost:23001/api
-```
-
-- `VITE_API_URL` (string): Base URL for backend API. Example: `http://localhost:23001/api`
+| Name                | Type   | Description                                 | Example Value           |
+|---------------------|--------|---------------------------------------------|------------------------|
+| VITE_API_URL        | string | Base URL for backend API                    | http://localhost:23001 |
 
 ---
 
@@ -298,68 +504,70 @@ VITE_API_URL=http://localhost:23001/api
 
 ### Backend
 
-- `from src/models/product import Product`
-- `from src/models/category import Category`
-- `from src/models/user import User`
-- `from src/models/cart import Cart`
-- `from src/models/order import Order`
-- `from src/controllers/productController import getProducts, getProductById, createProduct, updateProduct, deleteProduct`
-- `from src/controllers/categoryController import getCategories, getCategoryById, createCategory, updateCategory, deleteCategory`
-- `from src/controllers/authController import register, login`
-- `from src/controllers/userController import getMe`
-- `from src/controllers/cartController import getCart, addItemToCart, updateCartItem, removeCartItem`
-- `from src/controllers/orderController import createOrder, getOrders, getOrderById`
-- `from src/middleware/auth import authenticateJWT`
-- `from src/middleware/errorHandler import errorHandler`
-- `from src/db/index import db`
+- `from src/models/Branch import Branch`
+- `from src/models/Product import Product`
+- `from src/models/Dispatch import Dispatch`
+- `from src/models/User import User`
+- `from src/db/index import db` (PostgreSQL client instance)
 - `from src/db/redis import redisClient`
+- `from src/middleware/auth import authenticate, authorize`
+- `from src/middleware/errorHandler import errorHandler`
 - `from src/utils/jwt import signToken, verifyToken`
-- `from src/utils/password import hashPassword, comparePassword`
+- `from src/utils/validators import validateBranch, validateProduct, validateDispatch, validateUser`
 
 ### Frontend
 
-- `import { Product } from '../types/product'`
-- `import { Category } from '../types/category'`
-- `import { User } from '../types/user'`
-- `import { Cart, CartItem } from '../types/cart'`
-- `import { Order } from '../types/order'`
-- `import { useProducts } from '../hooks/useProducts'`
-- `import { useCategories } from '../hooks/useCategories'`
+- `import { Branch } from '../types/Branch'`
+- `import { Product } from '../types/Product'`
+- `import { Dispatch } from '../types/Dispatch'`
+- `import { User } from '../types/User'`
 - `import { useAuth } from '../hooks/useAuth'`
-- `import { useCart } from '../hooks/useCart'`
-- `import { useOrders } from '../hooks/useOrders'`
+- `import { useBranches } from '../hooks/useBranches'`
+- `import { useProducts } from '../hooks/useProducts'`
+- `import { useDispatches } from '../hooks/useDispatches'`
+- `import { useUsers } from '../hooks/useUsers'`
 - `import { tokens } from '../styles/tokens'`
+- `import { Navbar } from '../components/Layout/Navbar'`
+- `import { Sidebar } from '../components/Layout/Sidebar'`
 
 ---
 
 ## 7. FRONTEND STATE & COMPONENT CONTRACTS
 
-### React Hooks
+### Shared State Primitives (React hooks)
 
-- `useProducts() → { products, loading, error, fetchProducts, createProduct, updateProduct, deleteProduct }`
-- `useCategories() → { categories, loading, error, fetchCategories, createCategory, updateCategory, deleteCategory }`
-- `useAuth() → { user, token, loading, error, login, register, logout }`
-- `useCart() → { cart, loading, error, addItem, updateItem, removeItem, clearCart }`
-- `useOrders() → { orders, loading, error, createOrder, fetchOrders }`
+- `useAuth() → { user, token, login, logout, loading, error }`
+- `useBranches() → { branches, loading, error, createBranch, updateBranch, deleteBranch, fetchBranches }`
+- `useProducts() → { products, loading, error, createProduct, updateProduct, deleteProduct, fetchProducts }`
+- `useDispatches() → { dispatches, loading, error, createDispatch, updateDispatch, deleteDispatch, fetchDispatches }`
+- `useUsers() → { users, loading, error, createUser, updateUser, deleteUser, fetchUsers }`
 
-### Components
+### Reusable Component Props
 
-- `ProductList` props: `{ products: Product[], onAddToCart: (productId: number) => void }`
-- `ProductCard` props: `{ product: Product, onAddToCart: (productId: number) => void }`
-- `CategoryList` props: `{ categories: Category[], onSelect: (categoryId: number) => void }`
-- `Cart` props: `{ cart: Cart, onUpdateItem: (productId: number, quantity: number) => void, onRemoveItem: (productId: number) => void, onCheckout: () => void }`
-- `OrderList` props: `{ orders: Order[] }`
-- `LoginForm` props: `{ onSubmit: (email: string, password: string) => void, loading: boolean, error: string | null }`
-- `RegisterForm` props: `{ onSubmit: (data: { email: string, password: string, name: string, address: string }) => void, loading: boolean, error: string | null }`
+- `LoginForm` props: `{ onSubmit: (data: { username: string; password: string }) => void, loading: boolean, error: string | null }`
+- `LogoutButton` props: `{ onLogout: () => void }`
+- `BranchList` props: `{ branches: Branch[], onEdit: (id: number) => void, onDelete: (id: number) => void, loading: boolean }`
+- `BranchForm` props: `{ branch?: Branch, onSubmit: (data: Omit<Branch, 'id' | 'createdAt' | 'updatedAt'>) => void, loading: boolean }`
+- `BranchDetails` props: `{ branch: Branch }`
+- `ProductList` props: `{ products: Product[], onEdit: (id: number) => void, onDelete: (id: number) => void, loading: boolean }`
+- `ProductForm` props: `{ product?: Product, onSubmit: (data: Omit<Product, 'id' | 'createdAt' | 'updatedAt'>) => void, loading: boolean }`
+- `ProductDetails` props: `{ product: Product }`
+- `DispatchList` props: `{ dispatches: Dispatch[], onEdit: (id: number) => void, onDelete: (id: number) => void, loading: boolean }`
+- `DispatchForm` props: `{ dispatch?: Dispatch, onSubmit: (data: Omit<Dispatch, 'id' | 'createdBy' | 'createdAt' | 'updatedAt'>) => void, loading: boolean }`
+- `DispatchDetails` props: `{ dispatch: Dispatch }`
+- `UserList` props: `{ users: User[], onEdit: (id: number) => void, onDelete: (id: number) => void, loading: boolean }`
+- `UserForm` props: `{ user?: User, onSubmit: (data: Omit<User, 'id' | 'createdAt' | 'updatedAt'>) => void, loading: boolean }`
+- `UserDetails` props: `{ user: User }`
 - `Navbar` props: `{ user: User | null, onLogout: () => void }`
+- `Sidebar` props: `{ currentPage: string, onNavigate: (page: string) => void }`
 
 ---
 
 ## 8. FILE EXTENSION CONVENTION
 
-- All frontend files use `.tsx` (TypeScript React).
-- The project is TypeScript throughout (backend and frontend).
-- Entry point: `/src/main.tsx` (referenced in `public/index.html` as `<script src="/src/main.tsx">`).
+- **Frontend files:** `.tsx` (TypeScript React)
+- **Project language:** TypeScript (all frontend and backend source files use `.ts`/`.tsx`)
+- **Entry point:** `/src/main.tsx` (as referenced in `public/index.html` via `<script src="/src/main.tsx">`)
 
 ---
 
@@ -368,15 +576,15 @@ VITE_API_URL=http://localhost:23001/api
 ```typescript
 export const tokens = {
   colors: {
-    primary: '#3B82F6',
-    secondary: '#F59E42',
-    background: '#F9FAFB',
+    primary: '#2D6A4F',
+    secondary: '#40916C',
+    accent: '#F9C74F',
+    background: '#F8F9FA',
     surface: '#FFFFFF',
-    text: '#1F2937',
-    muted: '#6B7280',
-    error: '#EF4444',
-    success: '#10B981',
-    warning: '#F59E42'
+    error: '#D90429',
+    textPrimary: '#212529',
+    textSecondary: '#495057',
+    border: '#CED4DA'
   },
   typography: {
     fontFamily: "'Inter', sans-serif",
@@ -386,23 +594,26 @@ export const tokens = {
     lineHeightBase: 1.5
   },
   spacing: {
+    0: '0px',
     1: '0.25rem',
     2: '0.5rem',
     3: '0.75rem',
     4: '1rem',
+    5: '1.25rem',
     6: '1.5rem',
     8: '2rem'
   },
   borderRadius: {
-    sm: '0.25rem',
-    md: '0.5rem',
-    lg: '1rem',
+    sm: '4px',
+    md: '8px',
+    lg: '16px',
     full: '9999px'
   },
   shadows: {
-    sm: '0 1px 2px 0 rgba(0,0,0,0.05)',
-    md: '0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -2px rgba(0,0,0,0.1)',
-    lg: '0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -4px rgba(0,0,0,0.1)'
+    sm: '0 1px 2px rgba(44, 62, 80, 0.05)',
+    md: '0 2px 8px rgba(44, 62, 80, 0.10)',
+    lg: '0 4px 16px rgba(44, 62, 80, 0.15)'
   }
 };
 ```
+**All React components must import tokens from `frontend/src/styles/tokens.ts` and use these values for colors, spacing, typography, border radius, and shadows.**

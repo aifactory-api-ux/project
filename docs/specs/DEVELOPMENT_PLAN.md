@@ -1,210 +1,154 @@
-# DEVELOPMENT PLAN: Project
+# DEVELOPMENT PLAN: Prueba Luis V4
 
 ## 1. ARCHITECTURE OVERVIEW
 
-**System Overview:**  
-A modular monolithic e-commerce backend for a cat-specialized online store, built with Node.js 20, Express 4.18, PostgreSQL 15, and Redis 7. The backend exposes RESTful endpoints for product catalog, categories, user authentication, cart, and orders, as defined in SPEC.md. All code is strictly backend-only (no frontend code), following the provided folder structure and file contracts.
+**Components:**
+- **Backend API (Node.js + Express.js):** Single service exposing all endpoints for plants, distribution centers, orders, and metrics (KPIs, trends, volume by plant).
+- **Database:** PostgreSQL 15, schema includes tables for plants, distribution_centers, orders, with appropriate constraints and indexes.
+- **Cache:** Redis 7 for potential caching of metrics and trends (future scalability).
+- **Infrastructure:** Dockerized services, orchestrated via docker-compose, ready for Kubernetes migration. Healthchecks, environment validation, and auto-seeding on startup.
+- **Folder Structure:**
+  ```
+  project-root/
+  ├── backend/
+  │   ├── Dockerfile
+  │   ├── package.json
+  │   ├── tsconfig.json
+  │   ├── .env.example
+  │   └── src/
+  │       ├── index.ts
+  │       ├── app.ts
+  │       ├── db/
+  │       │   ├── index.ts
+  │       │   ├── schema.sql
+  │       │   └── seed.ts
+  │       ├── routes/
+  │       │   ├── plants.ts
+  │       │   ├── distributionCenters.ts
+  │       │   ├── orders.ts
+  │       │   └── metrics.ts
+  │       ├── controllers/
+  │       │   ├── plantController.ts
+  │       │   ├── distributionCenterController.ts
+  │       │   ├── orderController.ts
+  │       │   └── metricsController.ts
+  │       ├── models/
+  │       │   ├── Plant.ts
+  │       │   ├── DistributionCenter.ts
+  │       │   └── Order.ts
+  │       ├── middleware/
+  │       │   ├── errorHandler.ts
+  │       │   └── validate.ts
+  │       ├── utils/
+  │       │   ├── logger.ts
+  │       │   └── env.ts
+  │       └── types/
+  │           └── index.d.ts
+  ├── docker-compose.yml
+  ├── .env.example
+  ├── .gitignore
+  ├── .dockerignore
+  ├── run.sh
+  ├── README.md
+  └── docs/
+      └── architecture.md
+  ```
+- **API Endpoints:**
+  - CRUD for plants: `/plants`
+  - CRUD for distribution centers: `/distribution-centers`
+  - CRUD for orders: `/orders`
+  - Metrics: `/kpis`, `/trends`, `/volume-by-plant`
+  - Health: `/health`
 
-**Key Components:**
-- **Express API** (`backend/`): Handles all business logic and API endpoints.
-- **PostgreSQL**: Stores all persistent data (products, categories, users, carts, orders).
-- **Redis**: Used for caching and session/token management.
-- **Docker Compose**: Orchestrates backend, database, and cache for local/dev environments.
-- **Healthchecks, structured logging, env validation, error handling**: Included as enterprise baseline.
-
-**Folder Structure (backend only):**
-```
-backend/
-├── src/
-│   ├── app.ts
-│   ├── server.ts
-│   ├── routes/
-│   │   ├── products.ts
-│   │   ├── categories.ts
-│   │   ├── auth.ts
-│   │   ├── users.ts
-│   │   ├── cart.ts
-│   │   └── orders.ts
-│   ├── models/
-│   │   ├── product.ts
-│   │   ├── category.ts
-│   │   ├── user.ts
-│   │   ├── cart.ts
-│   │   └── order.ts
-│   ├── controllers/
-│   │   ├── productController.ts
-│   │   ├── categoryController.ts
-│   │   ├── authController.ts
-│   │   ├── userController.ts
-│   │   ├── cartController.ts
-│   │   └── orderController.ts
-│   ├── middleware/
-│   │   ├── auth.ts
-│   │   └── errorHandler.ts
-│   ├── db/
-│   │   ├── index.ts
-│   │   └── redis.ts
-│   ├── utils/
-│   │   ├── jwt.ts
-│   │   └── password.ts
-│   └── types/
-│       ├── product.ts
-│       ├── category.ts
-│       ├── user.ts
-│       ├── cart.ts
-│       └── order.ts
-├── Dockerfile
-└── .env.example
-```
-
-**API Endpoints:**  
-As defined in SPEC.md §3, covering products, categories, users/auth, cart, and orders.
-
-**Database Schema:**  
-Tables: products, categories, users, carts, cart_items, orders, order_items.  
-All schemas, indexes, and constraints as per SPEC.md §2.
-
-**Infrastructure:**  
-- `docker-compose.yml` at root: orchestrates backend, postgres, redis.
-- Healthchecks and startup order enforced.
-- `run.sh` for local dev bootstrap.
+**Key Patterns:**
+- Strict input validation and error handling.
+- Auto-migration and seeding on startup.
+- Structured logging.
+- All configuration via environment variables, validated at startup.
 
 ## 2. ACCEPTANCE CRITERIA
 
-1. All API endpoints in SPEC.md §3 are implemented and respond with correct data contracts.
-2. Database schema matches SPEC.md §2, is auto-initialized and seeded with sample data on startup.
-3. Backend service passes healthcheck, validates environment variables, and logs in structured JSON.
-4. JWT authentication and authorization enforced on protected endpoints.
-5. Docker Compose brings up all services (`./run.sh`), with healthchecks and no manual steps required.
-6. Error handling, input validation, and logging meet enterprise standards (no stack traces to clients).
+1. On first startup, the backend auto-creates all DB tables and seeds with 4 plants, 5 distribution centers, and 30 orders with correct status distribution and constraints.
+2. All endpoints (`/plants`, `/distribution-centers`, `/orders`, `/kpis`, `/trends`, `/volume-by-plant`) are available, validate input, and return correct data and error codes as per requirements.
+3. The system runs with a single `./run.sh` command, all services report healthy, and the backend is accessible at `http://localhost:23001` with no manual setup.
 
 ## TEAM SCOPE (MANDATORY — PARSED BY THE PIPELINE)
 Every executable item MUST include exactly one line at the end of the item block (after Validation):
 **Role:** <role_id> (<category>)
 
----
-
 ## 3. EXECUTABLE ITEMS
 
-### ITEM 1: Foundation — shared types, interfaces, DB schemas, config
-**Goal:** Create all shared code and configuration required by the backend: TypeScript interfaces for all data contracts, database schema (SQL), environment variable validation, and shared utility functions. This includes all files in `backend/src/types/`, `backend/src/db/`, and `backend/src/utils/` that are imported by other modules.
+### ITEM 1: Foundation — shared types, interfaces, DB schema, config, utilities
+**Goal:** Create all shared code and configuration for the backend, including TypeScript interfaces, DB schema (PostgreSQL), environment validation, and utility functions. This includes all models, enums, and types used by routes/controllers, as well as the SQL schema and seed logic.
 **Files to create:**
-- backend/src/types/product.ts (create) — Product interface/type
-- backend/src/types/category.ts (create) — Category interface/type
-- backend/src/types/user.ts (create) — User interface/type
-- backend/src/types/cart.ts (create) — Cart and CartItem interfaces/types
-- backend/src/types/order.ts (create) — Order interface/type
-- backend/src/db/schema.sql (create) — Full PostgreSQL schema for all tables, indexes, constraints
-- backend/src/db/index.ts (create) — PostgreSQL connection pool, env validation
-- backend/src/db/redis.ts (create) — Redis connection, env validation
-- backend/src/utils/jwt.ts (create) — JWT sign/verify helpers
-- backend/src/utils/password.ts (create) — Password hashing/verification helpers
+- backend/src/models/Plant.ts (create) — Plant interface/type
+- backend/src/models/DistributionCenter.ts (create) — DistributionCenter interface/type
+- backend/src/models/Order.ts (create) — Order interface/type, enums for status
+- backend/src/types/index.d.ts (create) — Global TypeScript types
+- backend/src/db/schema.sql (create) — Full PostgreSQL schema: plants, distribution_centers, orders, constraints, indexes
+- backend/src/db/seed.ts (create) — Seed logic for initial data (plants, centers, orders)
+- backend/src/utils/env.ts (create) — Environment variable validation
+- backend/src/utils/logger.ts (create) — Structured logger utility
 **Dependencies:** None
-**Validation:**  
-- `psql` can apply `schema.sql` with no errors; all tables and indexes created.
-- `backend/src/db/index.ts` connects to DB using env vars; fails fast if missing.
-- All types/interfaces are importable from other backend modules.
+**Validation:** Run `npm run build` and verify all types compile; run `psql` and apply `schema.sql` to confirm schema is valid; run `ts-node src/db/seed.ts` and confirm tables are seeded with correct data.
 **Role:** role-tl (technical_lead)
 
----
-
-### ITEM 2: Product & Category API — CRUD endpoints and logic
-**Goal:** Implement all product and category endpoints as per SPEC.md §3, including controllers, models, and routes. This covers GET/POST/PUT/DELETE for `/api/products` and `/api/categories`.
+### ITEM 2: Plants & Distribution Centers — CRUD endpoints and controllers
+**Goal:** Implement CRUD endpoints and controllers for plants and distribution centers, including input validation, error handling, and DB integration.
 **Files to create:**
-- backend/src/models/product.ts (create) — Product model (DB access)
-- backend/src/models/category.ts (create) — Category model (DB access)
-- backend/src/controllers/productController.ts (create) — Product business logic
-- backend/src/controllers/categoryController.ts (create) — Category business logic
-- backend/src/routes/products.ts (create) — Express router for product endpoints
-- backend/src/routes/categories.ts (create) — Express router for category endpoints
+- backend/src/routes/plants.ts (create) — Express router for `/plants`
+- backend/src/routes/distributionCenters.ts (create) — Express router for `/distribution-centers`
+- backend/src/controllers/plantController.ts (create) — Controller logic for plants
+- backend/src/controllers/distributionCenterController.ts (create) — Controller logic for distribution centers
 **Dependencies:** Item 1
-**Validation:**  
-- `GET /api/products` and `GET /api/categories` return seeded data.
-- `POST`, `PUT`, `DELETE` endpoints work and persist changes in DB.
+**Validation:** Start backend, call all `/plants` and `/distribution-centers` endpoints (GET, POST, PUT, DELETE), verify correct DB changes and error codes for invalid input.
 **Role:** role-be (backend_developer)
 
----
-
-### ITEM 3: User & Auth API — registration, login, JWT, user profile
-**Goal:** Implement user registration, login (JWT), and profile endpoints as per SPEC.md §3. Includes password hashing, JWT issuance, and protected `/api/users/me`.
+### ITEM 3: Orders — CRUD endpoints and business rules
+**Goal:** Implement CRUD endpoints and controllers for orders, enforcing all business rules (quantity >= 1, status enum, delivery_date logic), input validation, and error handling.
 **Files to create:**
-- backend/src/models/user.ts (create) — User model (DB access)
-- backend/src/controllers/authController.ts (create) — Auth logic (register, login)
-- backend/src/controllers/userController.ts (create) — User logic (profile)
-- backend/src/routes/auth.ts (create) — Express router for auth endpoints
-- backend/src/routes/users.ts (create) — Express router for user endpoints
-- backend/src/middleware/auth.ts (create) — JWT middleware for protected routes
+- backend/src/routes/orders.ts (create) — Express router for `/orders`
+- backend/src/controllers/orderController.ts (create) — Controller logic for orders
+- backend/src/middleware/validate.ts (create) — Input validation middleware for orders
 **Dependencies:** Item 1
-**Validation:**  
-- `POST /api/auth/register` creates user, hashes password.
-- `POST /api/auth/login` returns JWT and user object.
-- `GET /api/users/me` returns user profile when JWT is valid.
+**Validation:** Start backend, call all `/orders` endpoints (GET, POST, PUT, DELETE) with valid and invalid data, verify business rules and error codes.
 **Role:** role-be (backend_developer)
 
----
-
-### ITEM 4: Cart API — cart CRUD, add/update/remove items
-**Goal:** Implement all cart endpoints as per SPEC.md §3, including cart creation, item addition, update, and removal. Handles per-user cart logic, integrates with Redis for caching if needed.
+### ITEM 4: Metrics — KPIs, trends, and volume endpoints
+**Goal:** Implement endpoints for metrics: `/kpis`, `/trends`, `/volume-by-plant`, including query param filters, correct calculations (compliance rate, avg delivery time, etc.), and aggregation logic.
 **Files to create:**
-- backend/src/models/cart.ts (create) — Cart model (DB access)
-- backend/src/controllers/cartController.ts (create) — Cart business logic
-- backend/src/routes/cart.ts (create) — Express router for cart endpoints
+- backend/src/routes/metrics.ts (create) — Express router for `/kpis`, `/trends`, `/volume-by-plant`
+- backend/src/controllers/metricsController.ts (create) — Controller logic for metrics endpoints
 **Dependencies:** Item 1
-**Validation:**  
-- `POST /api/cart/items` adds item to cart for authenticated user.
-- `PUT /api/cart/items/:productId` updates quantity.
-- `DELETE /api/cart/items/:productId` removes item.
-- `GET /api/cart` returns current cart for user.
+**Validation:** Start backend, call `/kpis`, `/trends`, `/volume-by-plant` with and without filters, verify calculations match requirements and data is correct.
 **Role:** role-be (backend_developer)
 
----
-
-### ITEM 5: Order API — order creation, listing, detail
-**Goal:** Implement all order endpoints as per SPEC.md §3, including order creation from cart, listing user orders, and order detail. Handles order status and total calculation.
+### ITEM 5: Backend App Bootstrap — Express app, DB connection, error handling, healthcheck
+**Goal:** Implement backend app bootstrap: Express app setup, DB connection pooling, error handling middleware, healthcheck endpoint, and server startup.
 **Files to create:**
-- backend/src/models/order.ts (create) — Order model (DB access)
-- backend/src/controllers/orderController.ts (create) — Order business logic
-- backend/src/routes/orders.ts (create) — Express router for order endpoints
-**Dependencies:** Item 1
-**Validation:**  
-- `POST /api/orders` creates order from cart items.
-- `GET /api/orders` lists user orders.
-- `GET /api/orders/:id` returns order detail.
-**Role:** role-be (backend_developer)
-
----
-
-### ITEM 6: Backend Core — Express app, server, error handling, logging
-**Goal:** Assemble the Express app, register all routers, implement error handling middleware, healthcheck endpoint, and structured logging. Bootstrap the HTTP server on the correct port.
-**Files to create:**
-- backend/src/app.ts (create) — Express app entry point, registers all routers and middleware
-- backend/src/server.ts (create) — HTTP server bootstrap, listens on port 23001
+- backend/src/app.ts (create) — Express app setup, registers all routers, error handler
+- backend/src/index.ts (create) — HTTP server bootstrap, connects to DB, runs migrations/seeds, starts server on port 23001
+- backend/src/db/index.ts (create) — PostgreSQL connection pool logic
 - backend/src/middleware/errorHandler.ts (create) — Centralized error handler
-- backend/Dockerfile (create) — Multi-stage build, non-root user, EXPOSE 23001, runs `node dist/server.js`
-- backend/.env.example (create) — All required env vars with descriptions and examples
-**Dependencies:** Items 1–5
-**Validation:**  
-- `GET /health` returns `{status: "ok", service: "backend", version: "1.0.0"}`.
-- All routers are registered and respond.
-- Errors are logged in structured JSON, not leaked to clients.
-- Docker image builds and runs, exposing port 23001.
+- backend/Dockerfile (create) — Multi-stage build, non-root user, EXPOSE 23001, CMD: node dist/index.js
+- backend/package.json (create) — All dependencies and scripts
+- backend/tsconfig.json (create) — TypeScript config (strict mode)
+- backend/.env.example (create) — Document all required env vars
+- backend/README.md (create) — Backend usage and endpoints
+**Dependencies:** Item 1
+**Validation:** Build and run backend container, verify `/health` returns status, all routers are registered, and errors are handled gracefully.
 **Role:** role-be (backend_developer)
 
----
-
-### ITEM 7: Infrastructure & Deployment
-**Goal:** Provide complete Docker orchestration and documentation for local development and deployment. Includes docker-compose, healthchecks, startup script, and project documentation.
+### ITEM 6: Infrastructure & Deployment
+**Goal:** Complete Docker orchestration and local setup: docker-compose for backend, PostgreSQL, Redis; healthchecks; environment templates; run script; documentation.
 **Files to create:**
-- docker-compose.yml (create) — Orchestrates backend, postgres, redis, with healthchecks and depends_on
-- .env.example (create) — Root-level env vars for all services, with descriptions
-- .gitignore (create) — Exclude node_modules, dist, .env, logs, etc.
-- .dockerignore (create) — Exclude node_modules, .git, logs, dist
-- run.sh (create) — Validates Docker, builds images, starts services, waits for health, prints access URL
+- docker-compose.yml (create) — Services: backend (23001), postgres (25432), redis (26379), healthchecks, depends_on
+- .env.example (create) — All variables for backend, DB, Redis, with descriptions
+- .gitignore (create) — Exclude node_modules, dist, .env, *.log
+- .dockerignore (create) — Exclude node_modules, .git, dist, *.log
+- run.sh (create) — Validates Docker, builds, starts, waits for healthy, prints backend URL
 - README.md (create) — Prerequisites, setup, run instructions, endpoint summary
 - docs/architecture.md (create) — System diagram and component descriptions
-**Dependencies:** Items 1–6
-**Validation:**  
-- `./run.sh` completes with all services healthy.
-- Backend accessible at `http://localhost:23001/health`.
-- All endpoints respond as documented.
+**Dependencies:** All previous items
+**Validation:** Run `./run.sh`, confirm all containers healthy, backend accessible at `http://localhost:23001`, DB seeded, all endpoints respond.
 **Role:** role-devops (devops_support)

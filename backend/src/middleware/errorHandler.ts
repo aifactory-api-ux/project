@@ -1,64 +1,42 @@
 import { Request, Response, NextFunction } from 'express';
 
-interface AppError extends Error {
+export interface AppError extends Error {
   statusCode?: number;
   isOperational?: boolean;
 }
 
-export function errorHandler(
+export const errorHandler = (
   err: AppError,
   _req: Request,
   res: Response,
   _next: NextFunction
-): void {
+): void => {
   const statusCode = err.statusCode || 500;
-  const isOperational = err.isOperational || false;
+  const message = err.message || 'Internal Server Error';
 
-  const logEntry = {
-    level: statusCode >= 500 ? 'error' : 'warn',
-    message: err.message || 'Internal server error',
+  console.error(`[Error] ${statusCode} - ${message}`, {
+    stack: err.stack,
     statusCode,
-    isOperational,
-    stack: statusCode >= 500 ? err.stack : undefined,
+    message,
     timestamp: new Date().toISOString(),
-  };
-
-  console.error(JSON.stringify(logEntry));
-
-  if (isOperational && statusCode < 500) {
-    res.status(statusCode).json({
-      error: err.message,
-      statusCode,
-    });
-    return;
-  }
+  });
 
   res.status(statusCode).json({
-    error: statusCode >= 500 ? 'Internal server error' : err.message,
-    statusCode,
+    success: false,
+    error: message,
+    ...(process.env.NODE_ENV === 'development' && { stack: err.stack }),
   });
-}
+};
 
-export function notFoundHandler(_req: Request, res: Response): void {
-  const logEntry = {
-    level: 'warn',
-    message: 'Route not found',
-    path: _req.path,
-    method: _req.method,
-    timestamp: new Date().toISOString(),
-  };
-
-  console.warn(JSON.stringify(logEntry));
-
+export const notFoundHandler = (_req: Request, res: Response): void => {
   res.status(404).json({
-    error: 'Not found',
-    statusCode: 404,
+    success: false,
+    error: 'Resource not found',
   });
-}
+};
 
-export function createError(message: string, statusCode: number): AppError {
-  const error: AppError = new Error(message);
-  error.statusCode = statusCode;
-  error.isOperational = true;
-  return error;
-}
+export const asyncHandler = (fn: (req: Request, res: Response, next: NextFunction) => Promise<void>) => {
+  return (req: Request, res: Response, next: NextFunction) => {
+    Promise.resolve(fn(req, res, next)).catch(next);
+  };
+};

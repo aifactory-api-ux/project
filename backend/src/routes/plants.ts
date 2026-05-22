@@ -1,7 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { body, param, validationResult, query } from 'express-validator';
-import { getAllOrders, getOrderById, createOrder, updateOrder, deleteOrder } from '../controllers/orderController';
-import { ORDER_STATUSES } from '../models/Order';
+import { getAllPlants, getPlantById, createPlant, updatePlant, deletePlant } from '../controllers/plantController';
 
 const router = Router();
 
@@ -24,7 +23,7 @@ router.get(
     try {
       const page = req.query.page ? parseInt(req.query.page as string, 10) : undefined;
       const limit = req.query.limit ? parseInt(req.query.limit as string, 10) : undefined;
-      const result = await getAllOrders(page, limit);
+      const result = await getAllPlants(page, limit);
       res.status(200).json({ success: true, data: result });
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
@@ -40,11 +39,11 @@ router.get(
   async (req: Request, res: Response) => {
     try {
       const id = parseInt(req.params.id, 10);
-      const order = await getOrderById(id);
-      if (!order) {
-        return res.status(404).json({ success: false, error: 'Order not found' });
+      const plant = await getPlantById(id);
+      if (!plant) {
+        return res.status(404).json({ success: false, error: 'Plant not found' });
       }
-      res.status(200).json({ success: true, data: order });
+      res.status(200).json({ success: true, data: plant });
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       res.status(500).json({ success: false, error: errorMessage });
@@ -55,23 +54,18 @@ router.get(
 router.post(
   '/',
   [
-    body('plantId').isInt({ min: 1 }).withMessage('plantId is required and must be a positive integer'),
-    body('distributionCenterId').isInt({ min: 1 }).withMessage('distributionCenterId is required and must be a positive integer'),
-    body('quantity').isInt({ min: 1 }).withMessage('quantity is required and must be at least 1'),
-    body('status').optional().isIn(ORDER_STATUSES).withMessage(`status must be one of: ${ORDER_STATUSES.join(', ')}`),
-    body('deliveryDate').optional().isISO8601().withMessage('deliveryDate must be a valid ISO8601 date string'),
+    body('name').isString().notEmpty().withMessage('name is required and must be a non-empty string'),
+    body('location').isString().notEmpty().withMessage('location is required and must be a non-empty string'),
+    body('managerName').isString().notEmpty().withMessage('managerName is required and must be a non-empty string'),
   ],
   handleValidationErrors,
   async (req: Request, res: Response) => {
     try {
-      const { plantId, distributionCenterId, quantity, status, deliveryDate } = req.body;
-      const order = await createOrder({ plantId, distributionCenterId, quantity, status, deliveryDate });
-      res.status(201).json({ success: true, data: order });
+      const { name, location, managerName } = req.body;
+      const plant = await createPlant({ name, location, managerName });
+      res.status(201).json({ success: true, data: plant });
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      if (errorMessage.includes('violates foreign key constraint')) {
-        return res.status(400).json({ success: false, error: 'Invalid plantId or distributionCenterId' });
-      }
       res.status(500).json({ success: false, error: errorMessage });
     }
   }
@@ -81,27 +75,22 @@ router.put(
   '/:id',
   [
     param('id').isInt({ min: 1 }).withMessage('id must be a positive integer'),
-    body('plantId').optional().isInt({ min: 1 }).withMessage('plantId must be a positive integer'),
-    body('distributionCenterId').optional().isInt({ min: 1 }).withMessage('distributionCenterId must be a positive integer'),
-    body('quantity').optional().isInt({ min: 1 }).withMessage('quantity must be at least 1'),
-    body('status').optional().isIn(ORDER_STATUSES).withMessage(`status must be one of: ${ORDER_STATUSES.join(', ')}`),
-    body('deliveryDate').optional().isISO8601().withMessage('deliveryDate must be a valid ISO8601 date string'),
+    body('name').optional().isString().notEmpty().withMessage('name must be a non-empty string'),
+    body('location').optional().isString().notEmpty().withMessage('location must be a non-empty string'),
+    body('managerName').optional().isString().notEmpty().withMessage('managerName must be a non-empty string'),
   ],
   handleValidationErrors,
   async (req: Request, res: Response) => {
     try {
       const id = parseInt(req.params.id, 10);
-      const { plantId, distributionCenterId, quantity, status, deliveryDate } = req.body;
-      const order = await updateOrder(id, { plantId, distributionCenterId, quantity, status, deliveryDate });
-      if (!order) {
-        return res.status(404).json({ success: false, error: 'Order not found' });
+      const { name, location, managerName } = req.body;
+      const plant = await updatePlant(id, { name, location, managerName });
+      if (!plant) {
+        return res.status(404).json({ success: false, error: 'Plant not found' });
       }
-      res.status(200).json({ success: true, data: order });
+      res.status(200).json({ success: true, data: plant });
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      if (errorMessage.includes('violates foreign key constraint')) {
-        return res.status(400).json({ success: false, error: 'Invalid plantId or distributionCenterId' });
-      }
       res.status(500).json({ success: false, error: errorMessage });
     }
   }
@@ -114,9 +103,9 @@ router.delete(
   async (req: Request, res: Response) => {
     try {
       const id = parseInt(req.params.id, 10);
-      const deleted = await deleteOrder(id);
+      const deleted = await deletePlant(id);
       if (!deleted) {
-        return res.status(404).json({ success: false, error: 'Order not found' });
+        return res.status(404).json({ success: false, error: 'Plant not found' });
       }
       res.status(200).json({ success: true });
     } catch (error) {
