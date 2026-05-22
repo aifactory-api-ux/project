@@ -1,6 +1,6 @@
 import { createApp } from './app';
-import { db } from './db/index';
-import { redisClient } from './db/redis';
+import db, { closePool as closeDbPool, query } from './db/index';
+import redisClient, { closeRedis } from './db/redis';
 
 const PORT = parseInt(process.env.PORT || '23001', 10);
 
@@ -13,10 +13,7 @@ async function startServer(): Promise<void> {
   }));
 
   try {
-    const dbHealthy = await db.healthCheck();
-    if (!dbHealthy) {
-      throw new Error('Database health check failed');
-    }
+    await query('SELECT 1');
     console.log(JSON.stringify({
       level: 'info',
       message: 'Database connection verified',
@@ -33,10 +30,7 @@ async function startServer(): Promise<void> {
   }
 
   try {
-    const redisHealthy = await redisClient.healthCheck();
-    if (!redisHealthy) {
-      throw new Error('Redis health check failed');
-    }
+    await redisClient.ping();
     console.log(JSON.stringify({
       level: 'info',
       message: 'Redis connection verified',
@@ -71,8 +65,8 @@ async function startServer(): Promise<void> {
     }));
     server.close(async () => {
       try {
-        await db.closePool();
-        await redisClient.close();
+        await closeDbPool();
+        await closeRedis();
         console.log(JSON.stringify({
           level: 'info',
           message: 'Server shut down complete',
@@ -99,8 +93,8 @@ async function startServer(): Promise<void> {
     }));
     server.close(async () => {
       try {
-        await db.closePool();
-        await redisClient.close();
+        await closeDbPool();
+        await closeRedis();
         console.log(JSON.stringify({
           level: 'info',
           message: 'Server shut down complete',

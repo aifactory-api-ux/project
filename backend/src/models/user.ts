@@ -1,4 +1,4 @@
-import { db } from '../db/index';
+import db from '../db/index';
 import { User, CreateUserInput, PublicUser } from '../types/user';
 import { hashPassword } from '../utils/password';
 
