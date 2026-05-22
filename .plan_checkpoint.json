@@ -1,0 +1,709 @@
+{
+  "plan_items": [
+    {
+      "item_number": 1,
+      "title": "Foundation \u2014 shared types, interfaces, DB schemas, config",
+      "goal": "Create all shared code and configuration required by the backend: TypeScript interfaces for all data contracts, database schema (SQL), environment variable validation, and shared utility functions. This includes all files in `backend/src/types/`, `backend/src/db/`, and `backend/src/utils/` that are imported by other modules.",
+      "files": [
+        {
+          "path": "backend/src/types/product.ts",
+          "action": "create",
+          "purpose": "Product interface/type"
+        },
+        {
+          "path": "backend/src/types/category.ts",
+          "action": "create",
+          "purpose": "Category interface/type"
+        },
+        {
+          "path": "backend/src/types/user.ts",
+          "action": "create",
+          "purpose": "User interface/type"
+        },
+        {
+          "path": "backend/src/types/cart.ts",
+          "action": "create",
+          "purpose": "Cart and CartItem interfaces/types"
+        },
+        {
+          "path": "backend/src/types/order.ts",
+          "action": "create",
+          "purpose": "Order interface/type"
+        },
+        {
+          "path": "backend/src/db/index.ts",
+          "action": "create",
+          "purpose": "PostgreSQL connection pool, env validation"
+        },
+        {
+          "path": "backend/src/db/redis.ts",
+          "action": "create",
+          "purpose": "Redis connection, env validation"
+        },
+        {
+          "path": "backend/src/utils/jwt.ts",
+          "action": "create",
+          "purpose": "JWT sign/verify helpers"
+        },
+        {
+          "path": "backend/src/utils/password.ts",
+          "action": "create",
+          "purpose": "Password hashing/verification helpers"
+        }
+      ],
+      "dependencies": "None",
+      "validation": "- `psql` can apply `schema.sql` with no errors; all tables and indexes created.",
+      "status": "done",
+      "role_id": "role-tl",
+      "role_category": "technical_lead",
+      "wave": 1
+    },
+    {
+      "item_number": 2,
+      "title": "Product & Category API \u2014 CRUD endpoints and logic",
+      "goal": "Implement all product and category endpoints as per SPEC.md \u00a73, including controllers, models, and routes. This covers GET/POST/PUT/DELETE for `/api/products` and `/api/categories`.",
+      "files": [
+        {
+          "path": "backend/src/models/product.ts",
+          "action": "create",
+          "purpose": "Product model (DB access)"
+        },
+        {
+          "path": "backend/src/models/category.ts",
+          "action": "create",
+          "purpose": "Category model (DB access)"
+        },
+        {
+          "path": "backend/src/controllers/productController.ts",
+          "action": "create",
+          "purpose": "Product business logic"
+        },
+        {
+          "path": "backend/src/controllers/categoryController.ts",
+          "action": "create",
+          "purpose": "Category business logic"
+        },
+        {
+          "path": "backend/src/routes/products.ts",
+          "action": "create",
+          "purpose": "Express router for product endpoints"
+        },
+        {
+          "path": "backend/src/routes/categories.ts",
+          "action": "create",
+          "purpose": "Express router for category endpoints"
+        }
+      ],
+      "dependencies": "Item 1",
+      "validation": "- `GET /api/products` and `GET /api/categories` return seeded data.",
+      "status": "done",
+      "role_id": "role-be",
+      "role_category": "backend_developer",
+      "wave": 2
+    },
+    {
+      "item_number": 3,
+      "title": "User & Auth API \u2014 registration, login, JWT, user profile",
+      "goal": "Implement user registration, login (JWT), and profile endpoints as per SPEC.md \u00a73. Includes password hashing, JWT issuance, and protected `/api/users/me`.",
+      "files": [
+        {
+          "path": "backend/src/models/user.ts",
+          "action": "create",
+          "purpose": "User model (DB access)"
+        },
+        {
+          "path": "backend/src/controllers/authController.ts",
+          "action": "create",
+          "purpose": "Auth logic (register, login)"
+        },
+        {
+          "path": "backend/src/controllers/userController.ts",
+          "action": "create",
+          "purpose": "User logic (profile)"
+        },
+        {
+          "path": "backend/src/routes/auth.ts",
+          "action": "create",
+          "purpose": "Express router for auth endpoints"
+        },
+        {
+          "path": "backend/src/routes/users.ts",
+          "action": "create",
+          "purpose": "Express router for user endpoints"
+        },
+        {
+          "path": "backend/src/middleware/auth.ts",
+          "action": "create",
+          "purpose": "JWT middleware for protected routes"
+        }
+      ],
+      "dependencies": "Item 1",
+      "validation": "- `POST /api/auth/register` creates user, hashes password.",
+      "status": "done",
+      "role_id": "role-be",
+      "role_category": "backend_developer",
+      "wave": 2
+    },
+    {
+      "item_number": 4,
+      "title": "Cart API \u2014 cart CRUD, add/update/remove items",
+      "goal": "Implement all cart endpoints as per SPEC.md \u00a73, including cart creation, item addition, update, and removal. Handles per-user cart logic, integrates with Redis for caching if needed.",
+      "files": [
+        {
+          "path": "backend/src/models/cart.ts",
+          "action": "create",
+          "purpose": "Cart model (DB access)"
+        },
+        {
+          "path": "backend/src/controllers/cartController.ts",
+          "action": "create",
+          "purpose": "Cart business logic"
+        },
+        {
+          "path": "backend/src/routes/cart.ts",
+          "action": "create",
+          "purpose": "Express router for cart endpoints"
+        }
+      ],
+      "dependencies": "Item 1",
+      "validation": "- `POST /api/cart/items` adds item to cart for authenticated user.",
+      "status": "done",
+      "role_id": "role-be",
+      "role_category": "backend_developer",
+      "wave": 2
+    },
+    {
+      "item_number": 5,
+      "title": "Order API \u2014 order creation, listing, detail",
+      "goal": "Implement all order endpoints as per SPEC.md \u00a73, including order creation from cart, listing user orders, and order detail. Handles order status and total calculation.",
+      "files": [
+        {
+          "path": "backend/src/models/order.ts",
+          "action": "create",
+          "purpose": "Order model (DB access)"
+        },
+        {
+          "path": "backend/src/controllers/orderController.ts",
+          "action": "create",
+          "purpose": "Order business logic"
+        },
+        {
+          "path": "backend/src/routes/orders.ts",
+          "action": "create",
+          "purpose": "Express router for order endpoints"
+        }
+      ],
+      "dependencies": "Item 1",
+      "validation": "- `POST /api/orders` creates order from cart items.",
+      "status": "done",
+      "role_id": "role-be",
+      "role_category": "backend_developer",
+      "wave": 2
+    },
+    {
+      "item_number": 6,
+      "title": "Backend Core \u2014 Express app, server, error handling, logging",
+      "goal": "Assemble the Express app, register all routers, implement error handling middleware, healthcheck endpoint, and structured logging. Bootstrap the HTTP server on the correct port.",
+      "files": [
+        {
+          "path": "backend/src/app.ts",
+          "action": "create",
+          "purpose": "Express app entry point, registers all routers and middleware"
+        },
+        {
+          "path": "backend/src/server.ts",
+          "action": "create",
+          "purpose": "HTTP server bootstrap, listens on port 23001"
+        },
+        {
+          "path": "backend/src/middleware/errorHandler.ts",
+          "action": "create",
+          "purpose": "Centralized error handler"
+        }
+      ],
+      "dependencies": "Items 1\u20135",
+      "validation": "- `GET /health` returns `{status: \"ok\", service: \"backend\", version: \"1.0.0\"}`.",
+      "status": "done",
+      "role_id": "role-be",
+      "role_category": "backend_developer",
+      "wave": 3
+    },
+    {
+      "item_number": 7,
+      "title": "Infrastructure & Deployment",
+      "goal": "Provide complete Docker orchestration and documentation for local development and deployment. Includes docker-compose, healthchecks, startup script, and project documentation.",
+      "files": [
+        {
+          "path": "docker-compose.yml",
+          "action": "create",
+          "purpose": "Orchestrates backend, postgres, redis, with healthchecks and depends_on"
+        },
+        {
+          "path": "run.sh",
+          "action": "create",
+          "purpose": "Validates Docker, builds images, starts services, waits for health, prints access URL"
+        },
+        {
+          "path": "README.md",
+          "action": "create",
+          "purpose": "Prerequisites, setup, run instructions, endpoint summary"
+        }
+      ],
+      "dependencies": "Items 1\u20136",
+      "validation": "- `./run.sh` completes with all services healthy.",
+      "status": "done",
+      "role_id": "role-devops",
+      "role_category": "devops_support",
+      "wave": 4
+    },
+    {
+      "item_number": 8,
+      "title": "Carrito de Compras Page",
+      "goal": "Implements the \"Carrito de Compras\" Figma frame as `frontend/src/pages/CartPage.tsx`",
+      "design_specs": {
+        "background": "`colors.background` (#FFF8F0)",
+        "card/surface": "`colors.surface` (#FFFFFF)",
+        "primary_cta": "hover darkens to #D97A1E, focus ring 2px #F28C28",
+        "text_primary": "`colors.text_primary` (#2C3E50)",
+        "text_secondary": "`colors.text_secondary` (#7F8C8D)",
+        "border": "`colors.border` (#E0E0E0)",
+        "success": "`colors.success` (#27AE60) for trust message",
+        "error": "`colors.error` (#E74C3C) for remove actions",
+        "link": "`colors.secondary` (#4A90D9)",
+        "headings": "Inter, 24px, 600, line-height 1.3 (`font-semibold`, `text-[24px]`, `leading-[1.3]`)",
+        "product_name": "Inter, 16px, 600, line-height 1.5 (`font-semibold`, `text-[16px]`, `leading-[1.5]`)",
+        "body": "Inter, 16px, 400, line-height 1.5 (`font-normal`, `text-[16px]`, `leading-[1.5]`)",
+        "price": "Inter, 16px, 600, line-height 1.5 (`font-semibold`, `text-[16px]`)",
+        "button": "Inter, 16px, 600, letter-spacing 0.5px",
+        "trust_message": "Inter, 14px, 400, line-height 1.4 (`font-normal`, `text-[14px]`)",
+        "page_padding": "`px-[72px]` (desktop), `px-[16px]` (mobile)",
+        "section_gap": "`gap-[32px]`",
+        "card_padding": "`p-[24px]`",
+        "product_row_gap": "`gap-[16px]`",
+        "button_margin-top": "`mt-[24px]`",
+        "order_summary_card": "`p-[24px]`, `rounded-[12px]`",
+        "main": "vertical flex, gap 32px",
+        "cart_content": "horizontal flex, gap 32px",
+        "product_list": "flex-col, width 60%",
+        "order_summary": "width 40%, sticky at top 32px",
+        "responsive": "switches to single column at 768px (`flex-col`, full width)",
+        "remove": "hover color #E74C3C, underline",
+        "quantity_selector": "disabled state (opacity 0.5), focus ring #F28C28",
+        "loading": "skeleton screens (background #E0E0E0, shimmer)"
+      },
+      "files": [
+        {
+          "path": "frontend/src/pages/CartPage.tsx",
+          "action": "create",
+          "purpose": "Main cart page rendering all cart UI per Figma"
+        }
+      ],
+      "dependencies": "Item 9, 10, 11, 12, 13, 14, 15, 16, 17",
+      "validation": "All colors match tokens, product rows and summary visible, checkout CTA present, trust message shown, responsive at 768px, no placeholder text, API cart data rendered",
+      "status": "done",
+      "role_id": "frontend_developer",
+      "role_category": "frontend",
+      "wave": 6
+    },
+    {
+      "item_number": 9,
+      "title": "Barra de Navegaci\u00f3n Principal Component",
+      "goal": "Implements the fixed top navigation bar as per Figma",
+      "design_specs": {
+        "background": "`colors.surface` (#FFFFFF)",
+        "text": "`colors.text_primary` (#2C3E50)",
+        "icon": "`colors.primary` (#F28C28)",
+        "border_bottom": "`colors.border` (#E0E0E0)",
+        "logo": "Inter, 20px, 700, line-height 1.4 (`font-bold`, `text-[20px]`)",
+        "nav_links": "Inter, 16px, 600, line-height 1.5 (`font-semibold`, `text-[16px]`)",
+        "user_menu": "Inter, 14px, 400",
+        "height": "`h-[72px]`",
+        "padding": "`px-[32px]` (desktop), `px-[16px]` (mobile)",
+        "gap_between_nav_items": "`gap-[24px]`",
+        "responsive": "hamburger menu at < 1024px, collapses to drawer at < 768px",
+        "nav_link": "hover underline, color #F28C28",
+        "cart_icon": "badge background #F28C28, text #FFFFFF",
+        "hamburger": "2px stroke, rounded corners"
+      },
+      "files": [
+        {
+          "path": "frontend/src/components/ui/BarraDeNavegacionPrincipal.tsx",
+          "action": "create",
+          "purpose": "Main navigation bar"
+        }
+      ],
+      "dependencies": "None",
+      "validation": "Logo, nav links, search, cart icon, user menu visible; sticky at top; responsive menu at 768px; colors and spacing match Figma",
+      "status": "done",
+      "role_id": "frontend_developer",
+      "role_category": "frontend",
+      "wave": 5
+    },
+    {
+      "item_number": 10,
+      "title": "CartProductRow Component",
+      "goal": "Implements a single product row in the cart, as per Figma",
+      "design_specs": {
+        "card_background": "`colors.surface` (#FFFFFF)",
+        "border": "`colors.border` (#E0E0E0)",
+        "product_name": "Inter, 16px, 600",
+        "price": "Inter, 16px, 600",
+        "remove": "hover underline, color #E74C3C",
+        "quantity_selector": "border #E0E0E0, icon #F28C28",
+        "row_height": "`h-[104px]`",
+        "image_size": "`w-[80px] h-[80px]`",
+        "gap": "`gap-[16px]`",
+        "padding": "`py-[16px] px-[8px]`",
+        "flex_row": "image | info | quantity | price | remove",
+        "quantity": "disabled state (opacity 0.5), focus ring #F28C28"
+      },
+      "files": [
+        {
+          "path": "frontend/src/components/ui/CartProductRow.tsx",
+          "action": "create",
+          "purpose": "Cart product row"
+        }
+      ],
+      "dependencies": "None",
+      "validation": "Product image, name, price, quantity, remove visible; spacing and colors match; remove hover underline; quantity controls accessible",
+      "status": "done",
+      "role_id": "frontend_developer",
+      "role_category": "frontend",
+      "wave": 5
+    },
+    {
+      "item_number": 11,
+      "title": "OrderSummaryCard Component",
+      "goal": "Implements the order summary card (subtotal, shipping, discount, total)",
+      "design_specs": {
+        "card_background": "`colors.surface` (#FFFFFF)",
+        "border": "`colors.border` (#E0E0E0)",
+        "text": "`colors.text_primary` (#2C3E50)",
+        "total": "Inter, 18px, 700",
+        "section_title": "Inter, 16px, 600",
+        "row_label": "Inter, 14px, 400",
+        "row_value": "Inter, 14px, 600",
+        "card_padding": "`p-[24px]`",
+        "row_gap": "`gap-[12px]`",
+        "border_radius": "`rounded-[12px]`",
+        "divider": "border #E0E0E0, `my-[16px]`"
+      },
+      "files": [
+        {
+          "path": "frontend/src/components/ui/OrderSummaryCard.tsx",
+          "action": "create",
+          "purpose": "Order summary card"
+        }
+      ],
+      "dependencies": "None",
+      "validation": "Subtotal, shipping, discount, total visible; total in #F28C28; spacing and border radius match Figma",
+      "status": "done",
+      "role_id": "frontend_developer",
+      "role_category": "frontend",
+      "wave": 5
+    },
+    {
+      "item_number": 12,
+      "title": "CouponField Component",
+      "goal": "Implements the coupon input field and apply button",
+      "design_specs": {
+        "input_background": "`colors.surface` (#FFFFFF)",
+        "input_border": "`colors.border` (#E0E0E0)",
+        "input_text": "`colors.text_primary` (#2C3E50)",
+        "button": "hover darkens, disabled opacity 0.5",
+        "error": "error message below input",
+        "input": "focus ring #F28C28",
+        "input_height": "`h-[40px]`",
+        "button_height": "`h-[40px]`",
+        "gap": "`gap-[8px]`",
+        "border_radius": "`rounded-[8px]`",
+        "flex_row": "input | button",
+        "responsive": "stacks vertically at < 480px"
+      },
+      "files": [
+        {
+          "path": "frontend/src/components/ui/CouponField.tsx",
+          "action": "create",
+          "purpose": "Coupon input and apply button"
+        }
+      ],
+      "dependencies": "None",
+      "validation": "Input and button visible, error state shown, focus ring and hover match tokens, responsive stacking",
+      "status": "done",
+      "role_id": "frontend_developer",
+      "role_category": "frontend",
+      "wave": 5
+    },
+    {
+      "item_number": 13,
+      "title": "PrimaryButton Component",
+      "goal": "Implements the main CTA button style (e.g., \"Proceder al pago\")",
+      "design_specs": {
+        "background": "`colors.primary` (#F28C28)",
+        "hover": "background #D97A1E",
+        "text": "`colors.text_on_primary` (#FFFFFF)",
+        "disabled": "opacity 0.5, pointer-events-none",
+        "height": "`h-[48px]`",
+        "padding": "`px-[32px]`",
+        "border_radius": "`rounded-[8px]`",
+        "focus": "2px ring #F28C28"
+      },
+      "files": [
+        {
+          "path": "frontend/src/components/ui/PrimaryButton.tsx",
+          "action": "create",
+          "purpose": "Main CTA button"
+        }
+      ],
+      "dependencies": "None",
+      "validation": "Color, size, radius, hover/focus/disabled states match Figma",
+      "status": "done",
+      "role_id": "frontend_developer",
+      "role_category": "frontend",
+      "wave": 5
+    },
+    {
+      "item_number": 14,
+      "title": "SecondaryButton Component",
+      "goal": "Implements the secondary CTA button style (e.g., \"Seguir comprando\")",
+      "design_specs": {
+        "background": "`colors.surface` (#FFFFFF)",
+        "border": "`colors.primary` (#F28C28)",
+        "text": "`colors.primary` (#F28C28)",
+        "hover": "background #FFF0DE, border/text #D97A1E",
+        "disabled": "opacity 0.5, pointer-events-none",
+        "height": "`h-[48px]`",
+        "padding": "`px-[32px]`",
+        "border_radius": "`rounded-[8px]`",
+        "focus": "2px ring #F28C28"
+      },
+      "files": [
+        {
+          "path": "frontend/src/components/ui/SecondaryButton.tsx",
+          "action": "create",
+          "purpose": "Secondary CTA button"
+        }
+      ],
+      "dependencies": "None",
+      "validation": "Color, border, hover/focus/disabled states match Figma",
+      "status": "done",
+      "role_id": "frontend_developer",
+      "role_category": "frontend",
+      "wave": 5
+    },
+    {
+      "item_number": 15,
+      "title": "QuantitySelector Component",
+      "goal": "Implements the quantity selector control for cart items",
+      "design_specs": {
+        "button_background": "`colors.surface` (#FFFFFF)",
+        "button_border": "`colors.border` (#E0E0E0)",
+        "icon": "`colors.primary` (#F28C28)",
+        "disabled": "opacity 0.5, pointer-events-none",
+        "number": "Inter, 16px, 600",
+        "button_size": "`w-[32px] h-[32px]`",
+        "gap": "`gap-[8px]`",
+        "border_radius": "`rounded-[8px]`",
+        "flex_row": "minus | number | plus",
+        "button": "hover background #FFF0DE, focus ring #F28C28"
+      },
+      "files": [
+        {
+          "path": "frontend/src/components/ui/QuantitySelector.tsx",
+          "action": "create",
+          "purpose": "Quantity selector control"
+        }
+      ],
+      "dependencies": "None",
+      "validation": "Buttons and number visible, disabled state, focus ring, hover background",
+      "status": "done",
+      "role_id": "frontend_developer",
+      "role_category": "frontend",
+      "wave": 5
+    },
+    {
+      "item_number": 16,
+      "title": "TrustMessage Component",
+      "goal": "Implements the green trust/success message below the order summary",
+      "design_specs": {
+        "background": "#F0FAF4 (custom, not in tokens)",
+        "text": "`colors.success` (#27AE60)",
+        "icon": "`colors.success` (#27AE60)",
+        "padding": "`py-[8px] px-[16px]`",
+        "border_radius": "`rounded-[8px]`",
+        "margin-top": "`mt-[16px]`",
+        "flex_row": "icon | text, align-center"
+      },
+      "files": [
+        {
+          "path": "frontend/src/components/ui/TrustMessage.tsx",
+          "action": "create",
+          "purpose": "Trust/success message"
+        }
+      ],
+      "dependencies": "None",
+      "validation": "Green icon and text, background #F0FAF4, spacing and radius match Figma",
+      "status": "done",
+      "role_id": "frontend_developer",
+      "role_category": "frontend",
+      "wave": 5
+    },
+    {
+      "item_number": 17,
+      "title": "RecommendationCard Component",
+      "goal": "Implements the product recommendation card shown post-cart",
+      "design_specs": {
+        "card_background": "`colors.surface` (#FFFFFF)",
+        "border": "`colors.border` (#E0E0E0)",
+        "product_name": "Inter, 16px, 600",
+        "price": "Inter, 16px, 600",
+        "button": "hover background #D97A1E, focus ring #F28C28",
+        "card_padding": "`p-[16px]`",
+        "image_size": "`w-[64px] h-[64px]`",
+        "gap": "`gap-[12px]`",
+        "border_radius": "`rounded-[8px]`"
+      },
+      "files": [
+        {
+          "path": "frontend/src/components/ui/RecommendationCard.tsx",
+          "action": "create",
+          "purpose": "Product recommendation card"
+        }
+      ],
+      "dependencies": "None",
+      "validation": "Product image, name, price, button visible; spacing and colors match Figma",
+      "status": "done",
+      "role_id": "frontend_developer",
+      "role_category": "frontend",
+      "wave": 5
+    },
+    {
+      "item_number": 18,
+      "title": "Design Tokens File",
+      "goal": "Implements all design tokens as per Figma in a single file",
+      "design_specs": {
+        "all_tokens_from_figma": "primary (#F28C28), primary_hover (#D97A1E), secondary (#4A90D9), secondary_hover (#357ABD), accent (#F5A623), background (#FFF8F0), surface (#FFFFFF), text_primary (#2C3E50), text_secondary (#7F8C8D), text_on_primary (#FFFFFF), border (#E0E0E0), error (#E74C3C), success (#27AE60)",
+        "font_family": "'Inter', sans-serif",
+        "headings": "h1 (32px, 700, 1.2), h2 (24px, 600, 1.3), h3 (20px, 600, 1.4)",
+        "body": "regular (16px, 400, 1.5), small (14px, 400, 1.4)",
+        "button": "16px, 600, letter_spacing 0.5px",
+        "xs": "4px, sm: 8px, md: 16px, lg: 24px, xl: 32px, xxl: 48px",
+        "sm": "4px, md: 8px, lg: 12px, full: 50%",
+        "card": "0 2px 8px rgba(0,0,0,0.08)",
+        "dropdown": "0 4px 12px rgba(0,0,0,0.12)",
+        "modal": "0 8px 24px rgba(0,0,0,0.16)"
+      },
+      "files": [
+        {
+          "path": "frontend/src/styles/tokens.ts",
+          "action": "create",
+          "purpose": "All design tokens as JS/TS constants"
+        }
+      ],
+      "dependencies": "None",
+      "validation": "All tokens present, values match Figma, importable in all UI components",
+      "status": "done",
+      "role_id": "frontend_developer",
+      "role_category": "frontend",
+      "wave": 5
+    },
+    {
+      "item_number": 19,
+      "title": "API Hooks",
+      "goal": "Implements all API data fetching/mutation hooks for cart, products, categories, user, orders",
+      "design_specs": {},
+      "files": [
+        {
+          "path": "frontend/src/hooks/useCart.ts",
+          "action": "create",
+          "purpose": "Cart API hooks (get, add, update, remove)"
+        },
+        {
+          "path": "frontend/src/hooks/useProducts.ts",
+          "action": "create",
+          "purpose": "Product API hooks"
+        },
+        {
+          "path": "frontend/src/hooks/useCategories.ts",
+          "action": "create",
+          "purpose": "Category API hooks"
+        },
+        {
+          "path": "frontend/src/hooks/useUser.ts",
+          "action": "create",
+          "purpose": "User/auth API hooks"
+        },
+        {
+          "path": "frontend/src/hooks/useOrders.ts",
+          "action": "create",
+          "purpose": "Order API hooks"
+        }
+      ],
+      "dependencies": "None",
+      "validation": "All hooks return correct data, handle loading/error, integrate with UI components",
+      "status": "done",
+      "role_id": "frontend_developer",
+      "role_category": "frontend",
+      "wave": 5
+    },
+    {
+      "item_number": "fix-integration-1",
+      "title": "Integration fix: Contract defines POST /api/auth/login but no matching backend route found",
+      "goal": "Contract defines POST /api/auth/login but no matching backend route found",
+      "files": [],
+      "dependencies": "All prior items",
+      "validation": "API contract, backend routes, and frontend calls are consistent",
+      "wave": 7,
+      "status": "done",
+      "is_integration_fix": true
+    },
+    {
+      "item_number": "fix-integration-2",
+      "title": "Integration fix: Contract defines POST /api/auth/register but no matching backend route found",
+      "goal": "Contract defines POST /api/auth/register but no matching backend route found",
+      "files": [],
+      "dependencies": "All prior items",
+      "validation": "API contract, backend routes, and frontend calls are consistent",
+      "wave": 7,
+      "status": "done",
+      "is_integration_fix": true
+    },
+    {
+      "item_number": "fix-integration-3",
+      "title": "Integration fix: Contract defines GET /api/cart but no matching backend route found",
+      "goal": "Contract defines GET /api/cart but no matching backend route found",
+      "files": [],
+      "dependencies": "All prior items",
+      "validation": "API contract, backend routes, and frontend calls are consistent",
+      "wave": 7,
+      "status": "done",
+      "is_integration_fix": true
+    },
+    {
+      "item_number": "fix-integration-4",
+      "title": "Integration fix: Contract defines POST /api/cart/items but no matching backend route found",
+      "goal": "Contract defines POST /api/cart/items but no matching backend route found",
+      "files": [],
+      "dependencies": "All prior items",
+      "validation": "API contract, backend routes, and frontend calls are consistent",
+      "wave": 7,
+      "status": "done",
+      "is_integration_fix": true
+    },
+    {
+      "item_number": "fix-integration-5",
+      "title": "Integration fix: Contract defines DELETE /api/cart/items/:productId but no matching backend route",
+      "goal": "Contract defines DELETE /api/cart/items/:productId but no matching backend route found",
+      "files": [],
+      "dependencies": "All prior items",
+      "validation": "API contract, backend routes, and frontend calls are consistent",
+      "wave": 7,
+      "status": "done",
+      "is_integration_fix": true
+    }
+  ],
+  "qa_sync_completed": true,
+  "integration_check_done": true,
+  "thread_id": "run-aac077ec-0ad6-4fb3-8f31-3899eafda6c5",
+  "timestamp": 1779416245.919578
+}

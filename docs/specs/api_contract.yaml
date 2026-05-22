@@ -19,16 +19,6 @@ paths:
           application/json:
             schema:
               type: object
-  /api/auth/me:
-    get:
-      operationId: get_api_auth_me
-      responses:
-        '200':
-          description: Derived from SPEC.md
-          content:
-            application/json:
-              schema:
-                type: object
   /api/auth/register:
     post:
       operationId: post_api_auth_register
@@ -45,9 +35,9 @@ paths:
           application/json:
             schema:
               type: object
-  /api/opportunities:
+  /api/cart:
     get:
-      operationId: get_api_opportunities
+      operationId: get_api_cart
       responses:
         '200':
           description: Derived from SPEC.md
@@ -55,8 +45,9 @@ paths:
             application/json:
               schema:
                 type: object
+  /api/cart/items:
     post:
-      operationId: post_api_opportunities
+      operationId: post_api_cart_items
       responses:
         '201':
           description: Derived from SPEC.md
@@ -70,23 +61,14 @@ paths:
           application/json:
             schema:
               type: object
-  /api/opportunities/:id:
+  /api/cart/items/:productId:
     delete:
-      operationId: delete_api_opportunities_id
+      operationId: delete_api_cart_items_productId
       responses:
         '204':
           description: Derived from SPEC.md
-    get:
-      operationId: get_api_opportunities_id
-      responses:
-        '200':
-          description: Derived from SPEC.md
-          content:
-            application/json:
-              schema:
-                type: object
-    patch:
-      operationId: patch_api_opportunities_id
+    put:
+      operationId: put_api_cart_items_productId
       responses:
         '200':
           description: Derived from SPEC.md
@@ -100,3 +82,158 @@ paths:
           application/json:
             schema:
               type: object
+  /api/categories:
+    get:
+      operationId: get_api_categories
+      responses:
+        '200':
+          description: Derived from SPEC.md
+          content:
+            application/json:
+              schema:
+                type: object
+    post:
+      operationId: post_api_categories
+      responses:
+        '201':
+          description: Derived from SPEC.md
+          content:
+            application/json:
+              schema:
+                type: object
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+  /api/categories/:id:
+    delete:
+      operationId: delete_api_categories_id
+      responses:
+        '204':
+          description: Derived from SPEC.md
+    get:
+      operationId: get_api_categories_id
+      responses:
+        '200':
+          description: Derived from SPEC.md
+          content:
+            application/json:
+              schema:
+                type: object
+    put:
+      operationId: put_api_categories_id
+      responses:
+        '200':
+          description: Derived from SPEC.md
+          content:
+            application/json:
+              schema:
+                type: object
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+  /api/orders:
+    get:
+      operationId: get_api_orders
+      responses:
+        '200':
+          description: Derived from SPEC.md
+          content:
+            application/json:
+              schema:
+                type: object
+    post:
+      operationId: post_api_orders
+      responses:
+        '201':
+          description: Derived from SPEC.md
+          content:
+            application/json:
+              schema:
+                type: object
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+  /api/orders/:id:
+    get:
+      operationId: get_api_orders_id
+      responses:
+        '200':
+          description: Derived from SPEC.md
+          content:
+            application/json:
+              schema:
+                type: object
+  /api/products:
+    get:
+      operationId: get_api_products
+      responses:
+        '200':
+          description: Derived from SPEC.md
+          content:
+            application/json:
+              schema:
+                type: object
+    post:
+      operationId: post_api_products
+      responses:
+        '201':
+          description: Derived from SPEC.md
+          content:
+            application/json:
+              schema:
+                type: object
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+  /api/products/:id:
+    delete:
+      operationId: delete_api_products_id
+      responses:
+        '204':
+          description: Derived from SPEC.md
+    get:
+      operationId: get_api_products_id
+      responses:
+        '200':
+          description: Derived from SPEC.md
+          content:
+            application/json:
+              schema:
+                type: object
+    put:
+      operationId: put_api_products_id
+      responses:
+        '200':
+          description: Derived from SPEC.md
+          content:
+            application/json:
+              schema:
+                type: object
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+  /api/users/me:
+    get:
+      operationId: get_api_users_me
+      responses:
+        '200':
+          description: Derived from SPEC.md
+          content:
+            application/json:
+              schema:
+                type: object

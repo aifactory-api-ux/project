@@ -1,80 +1,85 @@
 #!/bin/bash
+
 set -e
 
-echo ">>> Checking prerequisites..."
-if ! command -v docker &> /dev/null; then
-    echo "Error: Docker is not installed. Please install Docker before proceeding."
-    exit 1
-fi
+echo "=========================================="
+echo "  CatStore E-Commerce - Startup Script"
+echo "=========================================="
 
-if ! command -v docker-compose &> /dev/null && ! docker compose version &> /dev/null; then
-    echo "Error: docker-compose is not installed. Please install docker-compose before proceeding."
-    exit 1
-fi
-
-COMPOSE_CMD="docker-compose"
-if docker compose version &> /dev/null; then
-    COMPOSE_CMD="docker compose"
-fi
-
-echo ">>> Starting services..."
-$COMPOSE_CMD up --build -d
-
-echo ">>> Waiting for services to be healthy..."
-sleep 5
-
-auth_healthy=false
-opportunity_healthy=false
-postgres_healthy=false
-redis_healthy=false
-
-for i in {1..30}; do
-    if $COMPOSE_CMD exec -T postgres pg_isready -U projectuser -d projectdb &> /dev/null; then
-        postgres_healthy=true
-        echo ">>> Postgres is ready"
-        break
-    fi
-    sleep 2
-done
-
-for i in {1..30}; do
-    if $COMPOSE_CMD exec -T redis redis-cli ping &> /dev/null; then
-        redis_healthy=true
-        echo ">>> Redis is ready"
-        break
-    fi
-    sleep 2
-done
-
-for i in {1..15}; do
-    if curl -sf http://localhost:23001/health &> /dev/null; then
-        auth_healthy=true
-        echo ">>> Auth service is healthy"
-        break
-    fi
-    sleep 2
-done
-
-for i in {1..15}; do
-    if curl -sf http://localhost:23002/health &> /dev/null; then
-        opportunity_healthy=true
-        echo ">>> Opportunity service is healthy"
-        break
-    fi
-    sleep 2
-done
-
-if [ "$postgres_healthy" = true ] && [ "$redis_healthy" = true ] && [ "$auth_healthy" = true ] && [ "$opportunity_healthy" = true ]; then
-    echo ""
-    echo "========================================"
-    echo "Application is running!"
-    echo "Auth service:    http://localhost:23001"
-    echo "Opportunity service: http://localhost:23002"
-    echo "========================================"
+if [ ! -f .env ]; then
+    cp .env.example .env
+    echo "✓ .env created from .env.example"
 else
-    echo "Warning: Some services may not be fully healthy yet"
-    echo "Auth service:    $auth_healthy"
-    echo "Opportunity service: $opportunity_healthy"
-    echo "Postgres: $postgres_healthy"
-    echo "Redis: $redis_healthy"
+    echo "✓ .env already exists"
 fi
+
+if ! command -v docker &> /dev/null; then
+    echo "✗ Docker is not installed or not in PATH"
+    exit 1
+fi
+
+if ! command -v docker compose &> /dev/null && ! command -v docker-compose &> /dev/null; then
+    echo "✗ Docker Compose is not installed or not in PATH"
+    exit 1
+fi
+
+DOCKER_COMPOSE_CMD="docker compose"
+if ! command -v docker compose &> /dev/null; then
+    DOCKER_COMPOSE_CMD="docker-compose"
+fi
+
+echo "✓ Docker and Docker Compose found"
+
+cd "$(dirname "$0")"
+
+echo ""
+echo "Building and starting services..."
+$DOCKER_COMPOSE_CMD up -d --build
+
+echo ""
+echo "Waiting for services to be healthy..."
+
+MAX_WAIT=120
+ELAPSED=0
+INTERVAL=5
+
+while [ $ELAPSED -lt $MAX_WAIT ]; do
+    BACKEND_HEALTH=$($DOCKER_COMPOSE_CMD exec -T backend wget -qO- http://localhost:23001/health 2>/dev/null || echo "unhealthy")
+
+    if echo "$BACKEND_HEALTH" | grep -q "ok"; then
+        echo ""
+        echo "=========================================="
+        echo "✓ All services are healthy!"
+        echo "=========================================="
+        echo ""
+        echo "  Backend API:  http://localhost:23001"
+        echo "  Health Check: http://localhost:23001/health"
+        echo ""
+        echo "  PostgreSQL:   localhost:25432"
+        echo "  Redis:        localhost:26379"
+        echo ""
+        echo "=========================================="
+        echo "  Press Ctrl+C to stop services"
+        echo "=========================================="
+        $DOCKER_COMPOSE_CMD logs -f
+        exit 0
+    fi
+
+    echo "  Waiting for backend... ($ELAPSED/${MAX_WAIT}s)"
+    sleep $INTERVAL
+    ELAPSED=$((ELAPSED + INTERVAL))
+done
+
+echo ""
+echo "✗ Services failed to become healthy within ${MAX_WAIT} seconds"
+echo ""
+echo "Backend logs:"
+$DOCKER_COMPOSE_CMD logs backend
+echo ""
+echo "Postgres logs:"
+$DOCKER_COMPOSE_CMD logs postgres
+echo ""
+echo "Redis logs:"
+$DOCKER_COMPOSE_CMD logs redis
+
+exit 1
