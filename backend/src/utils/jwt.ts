@@ -9,8 +9,7 @@ for (const varName of requiredEnvVars) {
 }
 
 const JWT_SECRET = process.env.JWT_SECRET as string;
-const JWT_EXPIRES_IN = (process.env.JWT_EXPIRES_IN || '1d') as string;
-const JWT_ALGORITHM = 'HS256';
+const JWT_EXPIRES_IN = 86400;
 
 export interface TokenPayload {
   userId: number;
@@ -21,15 +20,12 @@ export interface TokenPayload {
 export function signToken(payload: TokenPayload): string {
   return jwt.sign(payload, JWT_SECRET, {
     expiresIn: JWT_EXPIRES_IN,
-    algorithm: JWT_ALGORITHM,
   });
 }
 
 export function verifyToken(token: string): TokenPayload {
   try {
-    const decoded = jwt.verify(token, JWT_SECRET, {
-      algorithms: [JWT_ALGORITHM],
-    }) as TokenPayload;
+    const decoded = jwt.verify(token, JWT_SECRET) as TokenPayload;
     return decoded;
   } catch (error) {
     if (error instanceof jwt.TokenExpiredError) {
