@@ -1,0 +1,190 @@
+# UI/UX Design Contract
+
+> **READ THIS FILE BEFORE IMPLEMENTING ANY FRONTEND COMPONENT.**
+> This is the single source of truth for all visual and functional requirements.
+
+## Figma Source
+
+File URL: https://www.figma.com/design/zN8josj2PL7vHxepKisEJm
+
+## Visual Direction
+
+Dashboard corporativo moderno con enfoque en claridad de datos, usando una paleta profesional azul-gris con acentos verdes para cumplimiento. Diseño limpio, tipografía sans-serif, énfasis en KPIs y gráficos. Soporte de modo oscuro/claro con transición suave.
+
+## Pages / Figma Frames
+
+### 1. Dashboard Principal
+- **description**: Vista única del dashboard con todas las secciones apiladas verticalmente: Header, FilterBar, 4 KPI Cards en fila, TrendChart y PlantChart lado a lado (2 columnas), OrdersTable, OrderForm (en modal o sección inferior).
+- **layout**: Vertical stack con responsive grid. Desktop: KPIs en 4 columnas, gráficos en 2 columnas. Tablet: KPIs 2x2, gráficos apilados. Mobile: todo en 1 columna.
+- **components**: ['Header', 'FilterBar', 'KpiCard (x4)', 'TrendChart', 'PlantChart', 'OrdersTable', 'OrderForm', 'Toast', 'ErrorBanner']
+
+## Design Tokens
+
+```json
+{
+  "colors": {
+    "primary": "#1E3A5F",
+    "primaryLight": "#2B5A8C",
+    "secondary": "#4A90D9",
+    "accent": "#27AE60",
+    "background": "#F4F6F9",
+    "surface": "#FFFFFF",
+    "textPrimary": "#1A1A2E",
+    "textSecondary": "#6B7280",
+    "border": "#D1D5DB",
+    "error": "#E74C3C",
+    "warning": "#F39C12",
+    "success": "#27AE60",
+    "info": "#3498DB",
+    "darkBackground": "#1A1A2E",
+    "darkSurface": "#2D2D44",
+    "darkTextPrimary": "#EAEAEA",
+    "darkTextSecondary": "#A0A0B0",
+    "darkBorder": "#3D3D5C",
+    "badgeDelivered": "#27AE60",
+    "badgeInTransit": "#3498DB",
+    "badgePending": "#F39C12",
+    "badgeCancelled": "#E74C3C"
+  },
+  "typography": {
+    "fontFamily": "Inter, system-ui, sans-serif",
+    "headings": {
+      "h1": {
+        "size": "28px",
+        "weight": 700,
+        "lineHeight": 1.3
+      },
+      "h2": {
+        "size": "22px",
+        "weight": 600,
+        "lineHeight": 1.4
+      },
+      "h3": {
+        "size": "18px",
+        "weight": 600,
+        "lineHeight": 1.4
+      }
+    },
+    "body": {
+      "size": "14px",
+      "weight": 400,
+      "lineHeight": 1.5
+    },
+    "small": {
+      "size": "12px",
+      "weight": 400,
+      "lineHeight": 1.4
+    },
+    "kpiValue": {
+      "size": "32px",
+      "weight": 700,
+      "lineHeight": 1.2
+    },
+    "kpiLabel": {
+      "size": "14px",
+      "weight": 500,
+      "lineHeight": 1.4
+    }
+  },
+  "spacing": {
+    "xs": "4px",
+    "sm": "8px",
+    "md": "16px",
+    "lg": "24px",
+    "xl": "32px",
+    "xxl": "48px"
+  },
+  "radii": {
+    "sm": "4px",
+    "md": "8px",
+    "lg": "12px",
+    "full": "9999px"
+  },
+  "shadows": {
+    "card": "0 2px 8px rgba(0,0,0,0.08)",
+    "cardHover": "0 4px 16px rgba(0,0,0,0.12)",
+    "dropdown": "0 4px 12px rgba(0,0,0,0.15)"
+  },
+  "iconImageStyle": "Iconos de Lucide React, line art, 20px, color inherit. Sin im\u00e1genes, solo datos.",
+  "motionInteraction": "Transiciones de 300ms para hover y tema oscuro/claro. Tooltips con fade in 200ms. Spinner de carga animado.",
+  "chart": {
+    "trendChartType": "area",
+    "trendChartFill": "rgba(39, 174, 96, 0.2)",
+    "trendChartStroke": "#27AE60",
+    "trendChartShowGradient": true
+  }
+}
+```
+
+## Base Components
+
+### `Header`
+Barra superior con logo/nombre 'DistroViz', subtítulo, y botón de toggle tema (sol/luna).
+
+### `FilterBar`
+Dos selectores combinables: planta (con opción 'Todas') y estado (con opción 'Todos').
+
+### `KpiCard`
+Tarjeta con ícono, valor numérico grande, etiqueta y spinner de carga. 4 tarjetas en fila.
+
+### `TrendChart`
+Gráfico de líneas (Recharts) mostrando tendencia mensual de unidades despachadas. Tooltip con valor exacto.
+
+### `PlantChart`
+Gráfico de barras (Recharts) mostrando volumen despachado por planta. Colores distintivos, tooltip.
+
+### `OrdersTable`
+Tabla paginada (10 filas) con columnas: Planta, Centro Destino, Cantidad, Estado (badge de color), Fecha Despacho, Fecha Entrega. Filas alternadas. Delivery_date muestra '—' si NULL.
+
+### `OrderForm`
+Formulario para crear orden: selects dinámicos para planta y centro, input numérico cantidad, select estado, date pickers para fechas. Validación local, toast de éxito/error.
+
+### `Toast`
+Notificación temporal (5s) para éxito o error, con ícono y mensaje.
+
+### `ErrorBanner`
+Banner de error de API con botón de reintento.
+
+### `PrimaryNav`
+Navegación principal (en este caso solo el header, sin menú lateral).
+
+### `CTAButton`
+Botón primario para crear orden, con color primary y hover state.
+
+### `Card`
+Contenedor genérico con sombra, borde redondeado, padding, usado para KPIs y gráficos.
+
+
+## Preliminary Spec
+
+```json
+{
+  "visual_references": [],
+  "constraints": [],
+  "sections_or_pages": [],
+  "confirmed_assumptions": [],
+  "ready_for_phase_2": true,
+  "status": "complete",
+  "open_questions": [],
+  "gaps_to_resolve": []
+}
+```
+
+## Last Refinement Notes
+
+```json
+{
+  "modification_scope": "system_prompt",
+  "targets": [
+    "assistant behavior"
+  ],
+  "preserve_structure": true,
+  "patch_operations": [
+    {
+      "op": "replace",
+      "path": "assistant_instructions",
+      "value": "You are a helpful assistant designed to output JSON. Always respond with a valid JSON object only, no additional text."
+    }
+  ]
+}
+```

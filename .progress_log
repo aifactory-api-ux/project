@@ -1,150 +1,378 @@
 {
-  "project_id": "1ba6617d-ee96-4b9f-9210-eb6c07b2cbbc",
+  "project_id": "919a9a97-f1aa-471a-95d5-657cde9c3091",
   "project_name": "Project",
-  "goal": "Implementar el proyecto: Project\n\nArquitectura Técnica:\n# Síntesis Técnica - Project\n\n## Resumen Ejecutivo\nSe propone un MVP con arquitectura monolítica basada en FastAPI (backend), SQLite (base de datos) y React (frontend). FastAPI ofrece alto rendimiento y documentación automática, SQLite simplifi",
-  "last_updated": "2026-05-22T21:40:56.855333Z",
-  "total_items": 6,
-  "completed_count": 5,
+  "goal": "Implementar el proyecto: Project\n\nVisión: DistroViz es un proyecto de digitalización del proceso de monitoreo de distribución de producto terminado en una empresa manufacturera. Actualmente, los equipos de logística y operaciones carecen de una herramienta centralizada para visualizar el estado de l",
+  "last_updated": "2026-05-25T14:53:24.274680Z",
+  "total_items": 29,
+  "completed_count": 26,
   "status": "in_progress",
-  "current_item_index": 5,
+  "current_item_index": 26,
   "spec_file": "SPEC.md",
   "plan_file": "DEVELOPMENT_PLAN.md",
   "contract_manifest_available": false,
   "all_files_created": [
     ".opencode/.gitignore",
+    ".opencode/package-lock.json",
+    ".opencode/package.json",
     ".opencode/skills/frontend-design/SKILL.md",
     ".opencode/skills/project/SKILL.md",
     "DEVELOPMENT_PLAN.md",
     "SPEC.md",
     "api_contract.yaml",
-    "backend/.env.example",
-    "backend/README.md",
-    "backend/package.json",
-    "backend/src/app.ts",
-    "backend/src/controllers/distributionCenterController.ts",
-    "backend/src/controllers/plantController.ts",
-    "backend/src/db/index.ts",
-    "backend/src/db/redis.ts",
-    "backend/src/db/schema.sql",
-    "backend/src/db/seed.ts",
-    "backend/src/index.ts",
-    "backend/src/middleware/errorHandler.ts",
-    "backend/src/middleware/validate.ts",
-    "backend/src/models/DistributionCenter.ts",
-    "backend/src/models/Order.ts",
-    "backend/src/models/Plant.ts",
-    "backend/src/routes/distributionCenters.ts",
-    "backend/src/routes/plants.ts",
-    "backend/src/types/index.d.ts",
-    "backend/src/utils/env.ts",
-    "backend/src/utils/logger.ts",
-    "backend/tsconfig.json",
-    "backend/src/controllers/orderController.ts",
-    "backend/src/routes/orders.ts",
-    "backend/package-lock.json",
-    "backend/src/controllers/metricsController.ts",
-    "backend/src/routes/metrics.ts",
+    "backend/dispatch-service/src/main.ts",
+    "backend/dispatch-service/src/app.module.ts",
+    "backend/dispatch-service/src/modules/dispatch/dispatch.controller.ts",
+    "backend/dispatch-service/src/modules/dispatch/dispatch.service.ts",
+    "backend/dispatch-service/src/modules/dispatch/dispatch.module.ts",
+    "backend/dispatch-service/src/config/database.config.ts",
+    "backend/dispatch-service/src/config/redis.config.ts",
+    "backend/dispatch-service/src/health.controller.ts",
+    "backend/dispatch-service/src/modules/dispatch/dto/dispatch.dto.ts",
+    "backend/dispatch-service/src/modules/dispatch/dto/product-dispatch.dto.ts",
+    "backend/dispatch-service/src/modules/dispatch/entities/dispatch.entity.ts",
+    "backend/shared/dto/product.dto.ts",
+    "backend/shared/utils/date.ts",
+    ".plan_checkpoint.json",
     "docker-compose.yml",
     "run.sh",
     "README.md",
-    ".dockerignore",
+    ".env.example",
     ".gitignore",
-    "backend/Dockerfile"
+    "frontend/package.json",
+    "frontend/vite.config.ts",
+    "frontend/tsconfig.json",
+    "frontend/index.html",
+    "frontend/src/main.tsx",
+    "frontend/src/App.tsx",
+    "frontend/src/lib/api.ts",
+    "frontend/src/contexts/AuthContext.tsx",
+    "frontend/nginx.conf",
+    "frontend/Dockerfile",
+    "frontend/tsconfig.node.json",
+    "frontend/src/components/ui/Header.tsx",
+    "frontend/package-lock.json",
+    "frontend/src/components/ui/FilterBar.tsx",
+    "docs/uiux/api-contract.yaml",
+    "docs/uiux/component-guide.md",
+    "docs/uiux/design-contract.md",
+    "frontend/src/components/ui/FilterBar.test.tsx",
+    "frontend/src/components/ui/Header.test.tsx",
+    "frontend/src/components/ui/TrendChart.tsx",
+    "frontend/src/components/ui/PlantChart.tsx",
+    "frontend/src/components/ui/OrdersTable.tsx",
+    "frontend/src/components/ui/OrderForm.tsx",
+    "frontend/src/components/ui/KpiCard.test.tsx",
+    "frontend/src/components/ui/OrderForm.test.tsx",
+    "frontend/src/components/ui/PlantChart.test.tsx",
+    "frontend/src/components/ui/TrendChart.test.tsx",
+    "frontend/src/components/ui/ErrorBanner.tsx",
+    "frontend/src/components/ui/PrimaryNav.tsx",
+    "frontend/src/components/ui/ErrorBanner.test.tsx",
+    "frontend/src/components/ui/PrimaryNav.test.tsx",
+    "frontend/src/components/ui/Toast.test.tsx",
+    "frontend/src/components/ui/CTAButton.test.tsx",
+    "frontend/src/styles/tokens.ts",
+    "frontend/src/styles/tokens.test.ts",
+    "frontend/src/hooks/useCreateDispatch.ts",
+    "frontend/src/hooks/useUpdateDispatchStatus.ts",
+    "frontend/src/hooks/useDeleteDispatch.ts",
+    "frontend/src/pages/DashboardPrincipalPage.tsx",
+    "frontend/e2e/smoke.spec.ts",
+    "frontend/playwright.config.ts",
+    "frontend/src/hooks/useCreateDispatch.test.ts",
+    "frontend/src/hooks/useDeleteDispatch.test.ts",
+    "frontend/src/hooks/useDispatches.test.ts",
+    "frontend/src/hooks/useUpdateDispatchStatus.test.ts",
+    "frontend/src/pages/__tests__/DashboardPrincipalPage.test.tsx"
   ],
   "items": [
     {
       "item_number": 1,
-      "title": "Foundation — shared types, interfaces, DB schema, config, utilities",
+      "title": "Foundation — shared types, DTOs, DB schema, config, and utilities",
       "wave": 1,
       "files_created": [
         ".opencode/.gitignore",
+        ".opencode/package-lock.json",
+        ".opencode/package.json",
         ".opencode/skills/frontend-design/SKILL.md",
         ".opencode/skills/project/SKILL.md",
         "DEVELOPMENT_PLAN.md",
         "SPEC.md",
         "api_contract.yaml"
       ],
-      "completed_at": "2026-05-22T21:16:42.518757Z"
+      "completed_at": "2026-05-25T12:27:56.316394Z"
     },
     {
       "item_number": 2,
-      "title": "Plants & Distribution Centers — CRUD endpoints and controllers",
+      "title": "Dispatch Service — API endpoints, business logic, healthcheck",
       "wave": 2,
       "files_created": [
-        "backend/.env.example",
-        "backend/README.md",
-        "backend/package.json",
-        "backend/src/app.ts",
-        "backend/src/controllers/distributionCenterController.ts",
-        "backend/src/controllers/plantController.ts",
-        "backend/src/db/index.ts",
-        "backend/src/db/redis.ts",
-        "backend/src/db/schema.sql",
-        "backend/src/db/seed.ts",
-        "backend/src/index.ts",
-        "backend/src/middleware/errorHandler.ts",
-        "backend/src/middleware/validate.ts",
-        "backend/src/models/DistributionCenter.ts",
-        "backend/src/models/Order.ts",
-        "backend/src/models/Plant.ts",
-        "backend/src/routes/distributionCenters.ts",
-        "backend/src/routes/plants.ts",
-        "backend/src/types/index.d.ts",
-        "backend/src/utils/env.ts",
-        "backend/src/utils/logger.ts",
-        "backend/tsconfig.json"
+        "backend/dispatch-service/src/main.ts",
+        "backend/dispatch-service/src/app.module.ts",
+        "backend/dispatch-service/src/modules/dispatch/dispatch.controller.ts",
+        "backend/dispatch-service/src/modules/dispatch/dispatch.service.ts",
+        "backend/dispatch-service/src/modules/dispatch/dispatch.module.ts",
+        "backend/dispatch-service/src/config/database.config.ts",
+        "backend/dispatch-service/src/config/redis.config.ts",
+        "backend/dispatch-service/src/health.controller.ts",
+        "backend/dispatch-service/src/modules/dispatch/dto/dispatch.dto.ts",
+        "backend/dispatch-service/src/modules/dispatch/dto/product-dispatch.dto.ts",
+        "backend/dispatch-service/src/modules/dispatch/entities/dispatch.entity.ts",
+        "backend/shared/dto/product.dto.ts",
+        "backend/shared/utils/date.ts"
       ],
-      "completed_at": "2026-05-22T21:25:45.366417Z"
+      "completed_at": "2026-05-25T12:34:06.982847Z"
     },
     {
       "item_number": 3,
-      "title": "Orders — CRUD endpoints and business rules",
+      "title": "Dispatch Service — Dockerfile, TypeScript config, and E2E test stub",
       "wave": 2,
       "files_created": [
-        "backend/src/controllers/orderController.ts",
-        "backend/src/routes/orders.ts"
+        ".plan_checkpoint.json"
       ],
-      "completed_at": "2026-05-22T21:26:56.916867Z"
+      "completed_at": "2026-05-25T12:37:26.390830Z"
     },
     {
       "item_number": 4,
-      "title": "Metrics — KPIs, trends, and volume endpoints",
-      "wave": 2,
-      "files_created": [
-        "backend/package-lock.json",
-        "backend/src/controllers/metricsController.ts",
-        "backend/src/routes/metrics.ts"
-      ],
-      "completed_at": "2026-05-22T21:33:56.750003Z"
-    },
-    {
-      "item_number": 5,
-      "title": "Backend App Bootstrap — Express app, DB connection, error handling, healthcheck",
-      "wave": 2,
-      "files_created": [
-        "backend/src/app.ts",
-        "backend/src/index.ts",
-        "backend/src/db/index.ts",
-        "backend/src/middleware/errorHandler.ts",
-        "backend/package.json",
-        "backend/tsconfig.json",
-        "backend/README.md"
-      ],
-      "completed_at": "2026-05-22T21:36:54.247906Z"
-    },
-    {
-      "item_number": 6,
-      "title": "Infrastructure & Deployment",
+      "title": "Infrastructure & Deployment (Docker Compose, env, orchestration)",
       "wave": 3,
       "files_created": [
         "docker-compose.yml",
         "run.sh",
         "README.md",
-        ".dockerignore",
-        ".gitignore",
-        "backend/Dockerfile"
+        ".env.example",
+        ".gitignore"
       ],
-      "completed_at": "2026-05-22T21:39:00.422309Z"
+      "completed_at": "2026-05-25T12:40:42.158530Z"
+    },
+    {
+      "item_number": 5,
+      "title": "Frontend Infrastructure Setup (React 18 + Vite)",
+      "wave": 4,
+      "files_created": [
+        "frontend/package.json",
+        "frontend/vite.config.ts",
+        "frontend/tsconfig.json",
+        "frontend/index.html",
+        "frontend/src/main.tsx",
+        "frontend/src/App.tsx",
+        "frontend/src/lib/api.ts",
+        "frontend/src/contexts/AuthContext.tsx",
+        "frontend/nginx.conf",
+        "frontend/Dockerfile",
+        "docker-compose.yml",
+        "frontend/tsconfig.node.json"
+      ],
+      "completed_at": "2026-05-25T12:53:29.590118Z"
+    },
+    {
+      "item_number": 7,
+      "title": "Header",
+      "wave": 4,
+      "files_created": [
+        "frontend/src/components/ui/Header.tsx",
+        "frontend/package-lock.json"
+      ],
+      "completed_at": "2026-05-25T13:06:02.835285Z"
+    },
+    {
+      "item_number": 8,
+      "title": "FilterBar",
+      "wave": 4,
+      "files_created": [
+        "frontend/src/components/ui/FilterBar.tsx"
+      ],
+      "completed_at": "2026-05-25T13:08:33.937663Z"
+    },
+    {
+      "item_number": 9,
+      "title": "KpiCard",
+      "wave": 4,
+      "files_created": [
+        "docs/uiux/api-contract.yaml",
+        "docs/uiux/component-guide.md",
+        "docs/uiux/design-contract.md",
+        "frontend/src/components/ui/FilterBar.test.tsx",
+        "frontend/src/components/ui/Header.test.tsx"
+      ],
+      "completed_at": "2026-05-25T13:11:30.230558Z"
+    },
+    {
+      "item_number": 10,
+      "title": "TrendChart",
+      "wave": 4,
+      "files_created": [
+        "frontend/src/components/ui/TrendChart.tsx"
+      ],
+      "completed_at": "2026-05-25T13:23:57.135281Z"
+    },
+    {
+      "item_number": 11,
+      "title": "PlantChart",
+      "wave": 4,
+      "files_created": [
+        "frontend/src/components/ui/PlantChart.tsx"
+      ],
+      "completed_at": "2026-05-25T13:28:10.169862Z"
+    },
+    {
+      "item_number": 12,
+      "title": "OrdersTable",
+      "wave": 4,
+      "files_created": [
+        "frontend/src/components/ui/OrdersTable.tsx"
+      ],
+      "completed_at": "2026-05-25T13:32:20.536705Z"
+    },
+    {
+      "item_number": 13,
+      "title": "OrderForm",
+      "wave": 4,
+      "files_created": [
+        "frontend/src/components/ui/OrderForm.tsx"
+      ],
+      "completed_at": "2026-05-25T13:39:20.595581Z"
+    },
+    {
+      "item_number": 14,
+      "title": "Toast",
+      "wave": 4,
+      "files_created": [
+        "frontend/src/components/ui/KpiCard.test.tsx",
+        "frontend/src/components/ui/OrderForm.test.tsx",
+        "frontend/src/components/ui/PlantChart.test.tsx",
+        "frontend/src/components/ui/TrendChart.test.tsx"
+      ],
+      "completed_at": "2026-05-25T13:43:00.882914Z"
+    },
+    {
+      "item_number": 15,
+      "title": "ErrorBanner",
+      "wave": 4,
+      "files_created": [
+        "frontend/src/components/ui/ErrorBanner.tsx"
+      ],
+      "completed_at": "2026-05-25T13:50:11.678719Z"
+    },
+    {
+      "item_number": 16,
+      "title": "PrimaryNav",
+      "wave": 4,
+      "files_created": [
+        "frontend/src/components/ui/PrimaryNav.tsx"
+      ],
+      "completed_at": "2026-05-25T13:53:50.612688Z"
+    },
+    {
+      "item_number": 17,
+      "title": "CTAButton",
+      "wave": 4,
+      "files_created": [
+        "frontend/src/components/ui/ErrorBanner.test.tsx",
+        "frontend/src/components/ui/PrimaryNav.test.tsx",
+        "frontend/src/components/ui/Toast.test.tsx"
+      ],
+      "completed_at": "2026-05-25T13:56:15.466617Z"
+    },
+    {
+      "item_number": 18,
+      "title": "Card",
+      "wave": 4,
+      "files_created": [
+        "frontend/src/components/ui/CTAButton.test.tsx"
+      ],
+      "completed_at": "2026-05-25T14:01:30.667894Z"
+    },
+    {
+      "item_number": 19,
+      "title": "Design Tokens File",
+      "wave": 4,
+      "files_created": [
+        "frontend/src/styles/tokens.ts"
+      ],
+      "completed_at": "2026-05-25T14:07:33.051946Z"
+    },
+    {
+      "item_number": 20,
+      "title": "useDispatches Hook",
+      "wave": 4,
+      "files_created": [
+        "frontend/src/styles/tokens.test.ts"
+      ],
+      "completed_at": "2026-05-25T14:10:43.948285Z"
+    },
+    {
+      "item_number": 21,
+      "title": "useCreateDispatch Hook",
+      "wave": 4,
+      "files_created": [
+        "frontend/src/hooks/useCreateDispatch.ts"
+      ],
+      "completed_at": "2026-05-25T14:19:25.523330Z"
+    },
+    {
+      "item_number": 22,
+      "title": "useUpdateDispatchStatus Hook",
+      "wave": 4,
+      "files_created": [
+        "frontend/src/hooks/useUpdateDispatchStatus.ts"
+      ],
+      "completed_at": "2026-05-25T14:21:58.661680Z"
+    },
+    {
+      "item_number": 23,
+      "title": "useDeleteDispatch Hook",
+      "wave": 4,
+      "files_created": [
+        "frontend/src/hooks/useDeleteDispatch.ts"
+      ],
+      "completed_at": "2026-05-25T14:24:43.678547Z"
+    },
+    {
+      "item_number": 6,
+      "title": "DashboardPrincipalPage",
+      "wave": 5,
+      "files_created": [
+        "frontend/src/pages/DashboardPrincipalPage.tsx"
+      ],
+      "completed_at": "2026-05-25T14:30:08.318790Z"
+    },
+    {
+      "item_number": 24,
+      "title": "Frontend E2E Tests — Full-Stack Integration",
+      "wave": 7,
+      "files_created": [
+        "frontend/e2e/smoke.spec.ts",
+        "frontend/playwright.config.ts"
+      ],
+      "completed_at": "2026-05-25T14:33:27.459986Z"
+    },
+    {
+      "item_number": "fix-integration-1",
+      "title": "Integration fix: Contract defines POST /api/dispatch but no matching backend route found",
+      "wave": 8,
+      "files_created": [],
+      "completed_at": "2026-05-25T14:37:49.989472Z"
+    },
+    {
+      "item_number": "fix-integration-2",
+      "title": "Integration fix: Contract defines GET /api/dispatch but no matching backend route found",
+      "wave": 8,
+      "files_created": [
+        "frontend/src/hooks/useCreateDispatch.test.ts",
+        "frontend/src/hooks/useDeleteDispatch.test.ts",
+        "frontend/src/hooks/useDispatches.test.ts",
+        "frontend/src/hooks/useUpdateDispatchStatus.test.ts",
+        "frontend/src/pages/__tests__/DashboardPrincipalPage.test.tsx"
+      ],
+      "completed_at": "2026-05-25T14:44:41.670029Z"
+    },
+    {
+      "item_number": "fix-integration-3",
+      "title": "Integration fix: Contract defines GET /api/dispatch/{id} but no matching backend route found",
+      "wave": 8,
+      "files_created": [],
+      "completed_at": "2026-05-25T14:53:24.274680Z"
     }
   ]
 }

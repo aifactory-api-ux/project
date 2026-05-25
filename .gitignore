@@ -1,44 +1,42 @@
-node_modules
-dist
-.tsbuildinfo
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Build outputs
+dist/
+build/
+
+# Environment
 .env
 .env.local
-.env.production
-.env.example
-.git
-.gitignore
-.vscode
-.idea
+.env.*.local
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+
+# Testing
+.coverage
+.pytest_cache/
+coverage/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
 *.log
 npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-lerna-debug.log*
-.DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
-Thumbs.db
-.cache
-.pytest_cache
-.coverage
-.coverage.*
-htmlcov
-.nyc_output
-.stryker-cache
-instrument
-.performance
-raw_data
-__pycache__
-*.pyc
-*.pyo
-*.pyd
-.Python
-*.so
-*.egg
-*.egg-info
-build
-backend/node_modules
-frontend/node_modules
+
+# Docker
+.dockerignore

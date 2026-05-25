@@ -1,76 +1,38 @@
-# DEVELOPMENT PLAN: Prueba Luis V4
+# DEVELOPMENT PLAN: Project
 
 ## 1. ARCHITECTURE OVERVIEW
 
 **Components:**
-- **Backend API (Node.js + Express.js):** Single service exposing all endpoints for plants, distribution centers, orders, and metrics (KPIs, trends, volume by plant).
-- **Database:** PostgreSQL 15, schema includes tables for plants, distribution_centers, orders, with appropriate constraints and indexes.
-- **Cache:** Redis 7 for potential caching of metrics and trends (future scalability).
-- **Infrastructure:** Dockerized services, orchestrated via docker-compose, ready for Kubernetes migration. Healthchecks, environment validation, and auto-seeding on startup.
-- **Folder Structure:**
-  ```
-  project-root/
-  ├── backend/
-  │   ├── Dockerfile
-  │   ├── package.json
-  │   ├── tsconfig.json
-  │   ├── .env.example
-  │   └── src/
-  │       ├── index.ts
-  │       ├── app.ts
-  │       ├── db/
-  │       │   ├── index.ts
-  │       │   ├── schema.sql
-  │       │   └── seed.ts
-  │       ├── routes/
-  │       │   ├── plants.ts
-  │       │   ├── distributionCenters.ts
-  │       │   ├── orders.ts
-  │       │   └── metrics.ts
-  │       ├── controllers/
-  │       │   ├── plantController.ts
-  │       │   ├── distributionCenterController.ts
-  │       │   ├── orderController.ts
-  │       │   └── metricsController.ts
-  │       ├── models/
-  │       │   ├── Plant.ts
-  │       │   ├── DistributionCenter.ts
-  │       │   └── Order.ts
-  │       ├── middleware/
-  │       │   ├── errorHandler.ts
-  │       │   └── validate.ts
-  │       ├── utils/
-  │       │   ├── logger.ts
-  │       │   └── env.ts
-  │       └── types/
-  │           └── index.d.ts
-  ├── docker-compose.yml
-  ├── .env.example
-  ├── .gitignore
-  ├── .dockerignore
-  ├── run.sh
-  ├── README.md
-  └── docs/
-      └── architecture.md
-  ```
-- **API Endpoints:**
-  - CRUD for plants: `/plants`
-  - CRUD for distribution centers: `/distribution-centers`
-  - CRUD for orders: `/orders`
-  - Metrics: `/kpis`, `/trends`, `/volume-by-plant`
-  - Health: `/health`
+- **Backend:** Single NestJS service (`dispatch-service`) for dispatch/order management, using PostgreSQL for persistence and Redis for caching/session.
+- **Shared Modules:** DTOs and utilities shared between backend modules.
+- **Infrastructure:** Docker Compose for orchestration, with healthchecks and environment variable management. Local deployment only (no cloud).
+- **Database:** PostgreSQL 15.x, with auto-migration and seed data for plants, distribution centers, and dispatches.
+- **Cache:** Redis 7.x for session/cache.
+- **Frontend:** (Not in scope for this phase; backend-only plan.)
 
-**Key Patterns:**
-- Strict input validation and error handling.
-- Auto-migration and seeding on startup.
-- Structured logging.
-- All configuration via environment variables, validated at startup.
+**Models:**
+- **DispatchDto, DispatchCreateDto, ProductDispatchDto, ProductDispatchCreateDto** (see SPEC.md §2)
+- **Database schema:** dispatches, product_dispatches, plants, distribution_centers, vehicles, drivers (minimal for foreign keys).
+
+**API Endpoints (SPEC.md §3):**
+- POST `/api/dispatch`
+- GET `/api/dispatch`
+- GET `/api/dispatch/:id`
+- PATCH `/api/dispatch/:id/status`
+- DELETE `/api/dispatch/:id`
+
+**Folder Structure (SPEC.md §4):**
+- backend/dispatch-service/src/modules/dispatch/...
+- backend/shared/dto/, backend/shared/utils/
+- backend/dispatch-service/src/config/
+- backend/dispatch-service/Dockerfile
+- docker-compose.yml, .env.example, run.sh, README.md, .gitignore, .dockerignore
 
 ## 2. ACCEPTANCE CRITERIA
 
-1. On first startup, the backend auto-creates all DB tables and seeds with 4 plants, 5 distribution centers, and 30 orders with correct status distribution and constraints.
-2. All endpoints (`/plants`, `/distribution-centers`, `/orders`, `/kpis`, `/trends`, `/volume-by-plant`) are available, validate input, and return correct data and error codes as per requirements.
-3. The system runs with a single `./run.sh` command, all services report healthy, and the backend is accessible at `http://localhost:23001` with no manual setup.
+1. The backend service exposes all dispatch management endpoints as specified, with correct request/response DTOs and validation.
+2. Database schema is auto-migrated and seeded with 4 plants, 5 distribution centers, and 30 dispatches on startup; no manual DB setup required.
+3. All services start via `./run.sh`, pass healthchecks, and are accessible at the documented ports; environment variables are validated at startup.
 
 ## TEAM SCOPE (MANDATORY — PARSED BY THE PIPELINE)
 Every executable item MUST include exactly one line at the end of the item block (after Validation):
@@ -78,77 +40,72 @@ Every executable item MUST include exactly one line at the end of the item block
 
 ## 3. EXECUTABLE ITEMS
 
-### ITEM 1: Foundation — shared types, interfaces, DB schema, config, utilities
-**Goal:** Create all shared code and configuration for the backend, including TypeScript interfaces, DB schema (PostgreSQL), environment validation, and utility functions. This includes all models, enums, and types used by routes/controllers, as well as the SQL schema and seed logic.
+### ITEM 1: Foundation — shared types, DTOs, DB schema, config, and utilities
+**Goal:** Create all shared code and configuration required by backend modules, including DTOs, utility functions, and the complete database schema (SQL). This includes:
+- All DTOs for dispatch and product-dispatch (as per SPEC.md §2)
+- Shared product DTO
+- Date/time utility functions
+- Environment variable validation and shared config
+- Complete SQL schema for all required tables and indexes (dispatches, product_dispatches, plants, distribution_centers, vehicles, drivers)
 **Files to create:**
-- backend/src/models/Plant.ts (create) — Plant interface/type
-- backend/src/models/DistributionCenter.ts (create) — DistributionCenter interface/type
-- backend/src/models/Order.ts (create) — Order interface/type, enums for status
-- backend/src/types/index.d.ts (create) — Global TypeScript types
-- backend/src/db/schema.sql (create) — Full PostgreSQL schema: plants, distribution_centers, orders, constraints, indexes
-- backend/src/db/seed.ts (create) — Seed logic for initial data (plants, centers, orders)
-- backend/src/utils/env.ts (create) — Environment variable validation
-- backend/src/utils/logger.ts (create) — Structured logger utility
+- backend/shared/dto/product.dto.ts
+- backend/shared/utils/date.ts
+- backend/dispatch-service/src/modules/dispatch/dto/dispatch.dto.ts
+- backend/dispatch-service/src/modules/dispatch/dto/product-dispatch.dto.ts
+- backend/dispatch-service/src/modules/dispatch/entities/dispatch.entity.ts
+- backend/dispatch-service/src/config/database.config.ts
+- backend/dispatch-service/src/config/redis.config.ts
+- backend/dispatch-service/src/db/schema.sql
 **Dependencies:** None
-**Validation:** Run `npm run build` and verify all types compile; run `psql` and apply `schema.sql` to confirm schema is valid; run `ts-node src/db/seed.ts` and confirm tables are seeded with correct data.
+**Validation:** All DTOs/interfaces are importable and used by backend modules; running the schema SQL creates all required tables and indexes without error.
 **Role:** role-tl (technical_lead)
 
-### ITEM 2: Plants & Distribution Centers — CRUD endpoints and controllers
-**Goal:** Implement CRUD endpoints and controllers for plants and distribution centers, including input validation, error handling, and DB integration.
+### ITEM 2: Dispatch Service — API endpoints, business logic, healthcheck
+**Goal:** Implement the dispatch management module in NestJS, exposing all endpoints as per SPEC.md §3:
+- POST `/api/dispatch` (create dispatch)
+- GET `/api/dispatch` (list dispatches, with filters)
+- GET `/api/dispatch/:id` (get dispatch by ID)
+- PATCH `/api/dispatch/:id/status` (update status)
+- DELETE `/api/dispatch/:id` (delete dispatch)
+- GET `/health` (service healthcheck)
+Includes: controller, service, module definition, and integration with DB and Redis configs. Implements input validation, error handling, and structured logging.
 **Files to create:**
-- backend/src/routes/plants.ts (create) — Express router for `/plants`
-- backend/src/routes/distributionCenters.ts (create) — Express router for `/distribution-centers`
-- backend/src/controllers/plantController.ts (create) — Controller logic for plants
-- backend/src/controllers/distributionCenterController.ts (create) — Controller logic for distribution centers
+- backend/dispatch-service/src/main.ts
+- backend/dispatch-service/src/app.module.ts
+- backend/dispatch-service/src/modules/dispatch/dispatch.controller.ts
+- backend/dispatch-service/src/modules/dispatch/dispatch.service.ts
+- backend/dispatch-service/src/modules/dispatch/dispatch.module.ts
 **Dependencies:** Item 1
-**Validation:** Start backend, call all `/plants` and `/distribution-centers` endpoints (GET, POST, PUT, DELETE), verify correct DB changes and error codes for invalid input.
+**Validation:** All endpoints respond as per SPEC.md; healthcheck returns status 200 with service/version; logs are structured; invalid input returns 400 with error message.
 **Role:** role-be (backend_developer)
 
-### ITEM 3: Orders — CRUD endpoints and business rules
-**Goal:** Implement CRUD endpoints and controllers for orders, enforcing all business rules (quantity >= 1, status enum, delivery_date logic), input validation, and error handling.
+### ITEM 3: Dispatch Service — Dockerfile, TypeScript config, and E2E test stub
+**Goal:** Containerize the dispatch-service for local deployment, ensuring production-ready build and correct port exposure. Provide TypeScript config for strict type checking. Include E2E test stub (no test code, just file for future use).
 **Files to create:**
-- backend/src/routes/orders.ts (create) — Express router for `/orders`
-- backend/src/controllers/orderController.ts (create) — Controller logic for orders
-- backend/src/middleware/validate.ts (create) — Input validation middleware for orders
+- backend/dispatch-service/Dockerfile (multi-stage, EXPOSE 23001, runs on correct port, copies shared/ modules)
+- backend/dispatch-service/tsconfig.json (strict mode, paths for shared modules)
+- backend/dispatch-service/test/dispatch.e2e-spec.ts (empty stub, as per SPEC.md)
 **Dependencies:** Item 1
-**Validation:** Start backend, call all `/orders` endpoints (GET, POST, PUT, DELETE) with valid and invalid data, verify business rules and error codes.
+**Validation:** `docker build` and `docker run` start the service on port 23001; TypeScript compiles with no errors; E2E test file exists for future use.
 **Role:** role-be (backend_developer)
 
-### ITEM 4: Metrics — KPIs, trends, and volume endpoints
-**Goal:** Implement endpoints for metrics: `/kpis`, `/trends`, `/volume-by-plant`, including query param filters, correct calculations (compliance rate, avg delivery time, etc.), and aggregation logic.
+### ITEM 4: Infrastructure & Deployment (Docker Compose, env, orchestration)
+**Goal:** Provide complete orchestration for local deployment, including:
+- docker-compose.yml (dispatch-service, postgres, redis; correct ports, healthchecks, depends_on with service_healthy)
+- .env.example (all required variables, with descriptions and example values)
+- .gitignore (excludes node_modules, dist, .env, etc.)
+- .dockerignore (excludes node_modules, .git, dist, logs)
+- run.sh (checks Docker, builds, starts, waits for healthy, prints access URL)
+- README.md (setup, run, endpoints, troubleshooting)
+- docs/architecture.md (system diagram and component descriptions)
 **Files to create:**
-- backend/src/routes/metrics.ts (create) — Express router for `/kpis`, `/trends`, `/volume-by-plant`
-- backend/src/controllers/metricsController.ts (create) — Controller logic for metrics endpoints
-**Dependencies:** Item 1
-**Validation:** Start backend, call `/kpis`, `/trends`, `/volume-by-plant` with and without filters, verify calculations match requirements and data is correct.
-**Role:** role-be (backend_developer)
-
-### ITEM 5: Backend App Bootstrap — Express app, DB connection, error handling, healthcheck
-**Goal:** Implement backend app bootstrap: Express app setup, DB connection pooling, error handling middleware, healthcheck endpoint, and server startup.
-**Files to create:**
-- backend/src/app.ts (create) — Express app setup, registers all routers, error handler
-- backend/src/index.ts (create) — HTTP server bootstrap, connects to DB, runs migrations/seeds, starts server on port 23001
-- backend/src/db/index.ts (create) — PostgreSQL connection pool logic
-- backend/src/middleware/errorHandler.ts (create) — Centralized error handler
-- backend/Dockerfile (create) — Multi-stage build, non-root user, EXPOSE 23001, CMD: node dist/index.js
-- backend/package.json (create) — All dependencies and scripts
-- backend/tsconfig.json (create) — TypeScript config (strict mode)
-- backend/.env.example (create) — Document all required env vars
-- backend/README.md (create) — Backend usage and endpoints
-**Dependencies:** Item 1
-**Validation:** Build and run backend container, verify `/health` returns status, all routers are registered, and errors are handled gracefully.
-**Role:** role-be (backend_developer)
-
-### ITEM 6: Infrastructure & Deployment
-**Goal:** Complete Docker orchestration and local setup: docker-compose for backend, PostgreSQL, Redis; healthchecks; environment templates; run script; documentation.
-**Files to create:**
-- docker-compose.yml (create) — Services: backend (23001), postgres (25432), redis (26379), healthchecks, depends_on
-- .env.example (create) — All variables for backend, DB, Redis, with descriptions
-- .gitignore (create) — Exclude node_modules, dist, .env, *.log
-- .dockerignore (create) — Exclude node_modules, .git, dist, *.log
-- run.sh (create) — Validates Docker, builds, starts, waits for healthy, prints backend URL
-- README.md (create) — Prerequisites, setup, run instructions, endpoint summary
-- docs/architecture.md (create) — System diagram and component descriptions
-**Dependencies:** All previous items
-**Validation:** Run `./run.sh`, confirm all containers healthy, backend accessible at `http://localhost:23001`, DB seeded, all endpoints respond.
+- docker-compose.yml
+- .env.example
+- .gitignore
+- .dockerignore
+- run.sh
+- README.md
+- docs/architecture.md
+**Dependencies:** Items 1, 2, 3
+**Validation:** `./run.sh` completes without errors; all services healthy; backend accessible at http://localhost:23001/api/dispatch; healthcheck endpoint responds; seed data present in DB.
 **Role:** role-devops (devops_support)
