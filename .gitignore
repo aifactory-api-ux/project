@@ -1,42 +1,25 @@
-# Dependencies
 node_modules/
-.pnp
-.pnp.js
-
-# Build outputs
 dist/
 build/
-
-# Environment
+.git/
+.gitignore
 .env
+.env.example
 .env.local
-.env.*.local
-
-# Python
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 __pycache__/
-*.py[cod]
-*$py.class
-.venv/
-venv/
-
-# Testing
-.coverage
-.pytest_cache/
-coverage/
-
-# IDE
+*.pyc
+*.pyo
+.DS_Store
+Thumbs.db
 .idea/
 .vscode/
 *.swp
 *.swo
-
-# OS
-.DS_Store
-Thumbs.db
-
-# Logs
-*.log
-npm-debug.log*
-
-# Docker
-.dockerignore
+.coverage
+.pytest_cache/
+.benchmarks/
+node_modules/

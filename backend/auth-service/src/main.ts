@@ -1,22 +1,36 @@
 import { NestFactory } from '@nestjs/core';
+import { ValidationPipe, Logger } from '@nestjs/common';
 import { AppModule } from './app.module';
-import { ValidationPipe } from '@nestjs/common';
+import { validateEnv } from '../shared/config/env';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const logger = new Logger('Bootstrap');
 
-  app.useGlobalPipes(new ValidationPipe({
-    whitelist: true,
-    forbidNonWhitelisted: true,
-    transform: true,
-  }));
+  try {
+    validateEnv();
+  } catch (error) {
+    logger.error(`Failed to start: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    process.exit(1);
+  }
 
-  app.setGlobalPrefix('api');
+  const app = await NestFactory.create(AppModule, {
+    logger: ['error', 'warn', 'log', 'debug'],
+  });
+
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      transform: true,
+    }),
+  );
+
+  app.enableCors();
 
   const port = process.env.PORT || 23001;
   await app.listen(port);
-
-  console.log(`Auth service running on port ${port}`);
+  logger.log(`Auth service running on port ${port}`);
+  logger.log(`Health check: GET /health`);
 }
 
 bootstrap();

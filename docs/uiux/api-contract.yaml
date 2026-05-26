@@ -1,222 +1,204 @@
 openapi: 3.1.0
 info:
-  title: Dispatch Service API
-  version: '1.0.0'
+  title: Derived API Contract
+  version: 1.0.0
 paths:
-  /api/dispatch:
+  /api/auth/login:
     post:
-      operationId: createDispatch
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/DispatchCreateDto'
+      operationId: post_api_auth_login
       responses:
-        '200':
-          description: Dispatch created
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/DispatchDto'
-    get:
-      operationId: getAllDispatches
-      parameters:
-        - name: status
-          in: query
-          required: false
-          schema:
-            type: string
-        - name: plantId
-          in: query
-          required: false
-          schema:
-            type: string
-        - name: distributionCenterId
-          in: query
-          required: false
-          schema:
-            type: string
-      responses:
-        '200':
-          description: List of dispatches
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/DispatchDto'
-  /api/dispatch/{id}:
-    get:
-      operationId: getDispatchById
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: Dispatch by ID
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/DispatchDto'
-    delete:
-      operationId: deleteDispatch
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: Dispatch deleted
+        '201':
+          description: Derived from SPEC.md
           content:
             application/json:
               schema:
                 type: object
-                properties:
-                  success:
-                    type: boolean
-                required:
-                  - success
-  /api/dispatch/{id}/status:
-    patch:
-      operationId: updateDispatchStatus
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
       requestBody:
         required: true
         content:
           application/json:
             schema:
               type: object
-              properties:
-                status:
-                  type: string
-                  enum:
-                    - pending
-                    - in_transit
-                    - delivered
-                    - cancelled
-                actualDeliveryDate:
-                  type: string
-                  format: date-time
-                  nullable: true
-              required:
-                - status
+  /api/auth/me:
+    get:
+      operationId: get_api_auth_me
       responses:
         '200':
-          description: Dispatch status updated
+          description: Derived from SPEC.md
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/DispatchDto'
-components:
-  schemas:
-    DispatchDto:
-      type: object
-      properties:
-        id:
-          type: string
-        plantId:
-          type: string
-        distributionCenterId:
-          type: string
-        status:
-          type: string
-          enum:
-            - pending
-            - in_transit
-            - delivered
-            - cancelled
-        createdAt:
-          type: string
-          format: date-time
-        updatedAt:
-          type: string
-          format: date-time
-        scheduledDate:
-          type: string
-          format: date-time
-        actualDeliveryDate:
-          type: string
-          format: date-time
-          nullable: true
-        vehicleId:
-          type: string
-        driverId:
-          type: string
-        products:
-          type: array
-          items:
-            $ref: '#/components/schemas/ProductDispatchDto'
-      required:
-        - id
-        - plantId
-        - distributionCenterId
-        - status
-        - createdAt
-        - updatedAt
-        - scheduledDate
-        - actualDeliveryDate
-        - vehicleId
-        - driverId
-        - products
-    ProductDispatchDto:
-      type: object
-      properties:
-        productId:
-          type: string
-        quantity:
-          type: number
-        unit:
-          type: string
-      required:
-        - productId
-        - quantity
-        - unit
-    DispatchCreateDto:
-      type: object
-      properties:
-        plantId:
-          type: string
-        distributionCenterId:
-          type: string
-        scheduledDate:
-          type: string
-          format: date-time
-        vehicleId:
-          type: string
-        driverId:
-          type: string
-        products:
-          type: array
-          items:
-            $ref: '#/components/schemas/ProductDispatchCreateDto'
-      required:
-        - plantId
-        - distributionCenterId
-        - scheduledDate
-        - vehicleId
-        - driverId
-        - products
-    ProductDispatchCreateDto:
-      type: object
-      properties:
-        productId:
-          type: string
-        quantity:
-          type: number
-        unit:
-          type: string
-      required:
-        - productId
-        - quantity
-        - unit
+                type: object
+  /api/auth/refresh:
+    post:
+      operationId: post_api_auth_refresh
+      responses:
+        '201':
+          description: Derived from SPEC.md
+          content:
+            application/json:
+              schema:
+                type: object
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+  /api/auth/register:
+    post:
+      operationId: post_api_auth_register
+      responses:
+        '201':
+          description: Derived from SPEC.md
+          content:
+            application/json:
+              schema:
+                type: object
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+  /api/orders:
+    get:
+      operationId: get_api_orders
+      responses:
+        '200':
+          description: Derived from SPEC.md
+          content:
+            application/json:
+              schema:
+                type: object
+    post:
+      operationId: post_api_orders
+      responses:
+        '201':
+          description: Derived from SPEC.md
+          content:
+            application/json:
+              schema:
+                type: object
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+  /api/orders/:id:
+    get:
+      operationId: get_api_orders_id
+      responses:
+        '200':
+          description: Derived from SPEC.md
+          content:
+            application/json:
+              schema:
+                type: object
+  /api/orders/:id/status:
+    put:
+      operationId: put_api_orders_id_status
+      responses:
+        '200':
+          description: Derived from SPEC.md
+          content:
+            application/json:
+              schema:
+                type: object
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+  /api/products:
+    get:
+      operationId: get_api_products
+      responses:
+        '200':
+          description: Derived from SPEC.md
+          content:
+            application/json:
+              schema:
+                type: object
+    post:
+      operationId: post_api_products
+      responses:
+        '201':
+          description: Derived from SPEC.md
+          content:
+            application/json:
+              schema:
+                type: object
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+  /api/products/:id:
+    delete:
+      operationId: delete_api_products_id
+      responses:
+        '204':
+          description: Derived from SPEC.md
+    get:
+      operationId: get_api_products_id
+      responses:
+        '200':
+          description: Derived from SPEC.md
+          content:
+            application/json:
+              schema:
+                type: object
+    put:
+      operationId: put_api_products_id
+      responses:
+        '200':
+          description: Derived from SPEC.md
+          content:
+            application/json:
+              schema:
+                type: object
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+  /api/users/:id:
+    get:
+      operationId: get_api_users_id
+      responses:
+        '200':
+          description: Derived from SPEC.md
+          content:
+            application/json:
+              schema:
+                type: object
+  /api/users/me:
+    get:
+      operationId: get_api_users_me
+      responses:
+        '200':
+          description: Derived from SPEC.md
+          content:
+            application/json:
+              schema:
+                type: object
+    put:
+      operationId: put_api_users_me
+      responses:
+        '200':
+          description: Derived from SPEC.md
+          content:
+            application/json:
+              schema:
+                type: object
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object

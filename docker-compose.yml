@@ -1,81 +1,198 @@
-version: '3.8'
+version: "3.9"
 
 services:
   postgres:
     image: postgres:15-alpine
-    container_name: distroviz_postgres
+    container_name: catshop-postgres
     environment:
-      POSTGRES_USER: ${DISPATCH_DB_USER:-distroviz}
-      POSTGRES_PASSWORD: ${DISPATCH_DB_PASSWORD:-secretpassword}
-      POSTGRES_DB: ${DISPATCH_DB_NAME:-distroviz}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-catshop}
     ports:
-      - "${POSTGRES_PORT:-25432}:5432"
+      - "25432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DISPATCH_DB_USER:-distroviz}"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres}"]
       interval: 5s
       timeout: 5s
       retries: 5
-    networks:
-      - distroviz_network
 
   redis:
     image: redis:7-alpine
-    container_name: distroviz_redis
+    container_name: catshop-redis
     ports:
-      - "${REDIS_PORT:-26379}:6379"
-    volumes:
-      - redis_data:/data
+      - "26379:6379"
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 5s
       timeout: 5s
       retries: 5
-    networks:
-      - distroviz_network
 
-  backend:
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: catshop-rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-guest}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-guest}
+    ports:
+      - "25672:5672"
+      - "15672:15672"
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+
+  auth-service:
     build:
       context: .
-      dockerfile: backend/dispatch-service/Dockerfile
-    container_name: distroviz_backend
+      dockerfile: ./backend/auth-service/Dockerfile
+    container_name: catshop-auth-service
     env_file:
       - .env
+    environment:
+      NODE_ENV: production
+      PORT: 23001
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-catshop}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-1h}
+      REFRESH_TOKEN_SECRET: ${REFRESH_TOKEN_SECRET}
+      REFRESH_TOKEN_EXPIRES_IN: ${REFRESH_TOKEN_EXPIRES_IN:-7d}
     ports:
-      - "${DISPATCH_API_PORT:-23001}:${DISPATCH_API_PORT:-23001}"
+      - "23001:23001"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:23001/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  product-service:
+    build:
+      context: .
+      dockerfile: ./backend/product-service/Dockerfile
+    container_name: catshop-product-service
+    env_file:
+      - .env
+    environment:
+      NODE_ENV: production
+      PORT: 23002
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-catshop}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-1h}
+    ports:
+      - "23002:23002"
     depends_on:
       postgres:
         condition: service_healthy
       redis:
         condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:${DISPATCH_API_PORT:-23001}/health || exit 1"]
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:23002/health"]
       interval: 10s
       timeout: 5s
       retries: 5
-      start_period: 30s
-    networks:
-      - distroviz_network
-    restart: unless-stopped
+
+  order-service:
+    build:
+      context: .
+      dockerfile: ./backend/order-service/Dockerfile
+    container_name: catshop-order-service
+    env_file:
+      - .env
+    environment:
+      NODE_ENV: production
+      PORT: 23003
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-catshop}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-1h}
+    ports:
+      - "23003:23003"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:23003/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  user-service:
+    build:
+      context: .
+      dockerfile: ./backend/user-service/Dockerfile
+    container_name: catshop-user-service
+    env_file:
+      - .env
+    environment:
+      NODE_ENV: production
+      PORT: 23004
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-catshop}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-1h}
+    ports:
+      - "23004:23004"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:23004/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   frontend:
     build:
       context: ./frontend
-      dockerfile: Dockerfile
-    container_name: distroviz_frontend
+    container_name: catshop-frontend
     ports:
-      - "${FRONTEND_PORT:-24001}:80"
+      - "24000:80"
     depends_on:
-      - backend
-    networks:
-      - distroviz_network
-    restart: unless-stopped
-
-networks:
-  distroviz_network:
-    driver: bridge
+      - auth-service
+      - product-service
+      - order-service
+      - user-service
 
 volumes:
   postgres_data:
-  redis_data:

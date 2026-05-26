@@ -1,53 +1,182 @@
-import { Injectable } from '@nestjs/common';
-import { UserRepository } from './user.repository';
-import { hashPassword, comparePassword } from '../../shared/utils/hash';
-import * as jwt from 'jsonwebtoken';
-
-export interface UserPayload {
-  id: string;
-  email: string;
-}
+import {
+  Injectable,
+  UnauthorizedException,
+  ConflictException,
+  NotFoundException,
+  Logger,
+} from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { User, UserRole } from '../shared/entities/user.entity';
+import {
+  signJwt,
+  signRefreshToken,
+  verifyRefreshToken,
+  hashPassword,
+  comparePassword,
+} from '../shared/utils/jwt';
+import { AuthRequest, AuthResponse } from '../shared/dto/auth.dto';
 
 @Injectable()
 export class AuthService {
-  constructor(private readonly userRepository: UserRepository) {}
+  private readonly logger = new Logger(AuthService.name);
 
-  async register(email: string, password: string, fullName: string) {
-    const passwordHash = hashPassword(password);
-    const user = await this.userRepository.create({
-      email,
-      passwordHash,
-      fullName,
+  constructor(
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
+  ) {}
+
+  async register(authRequest: AuthRequest): Promise<AuthResponse> {
+    this.logger.log(`Registering user: ${authRequest.email}`);
+
+    const existingUser = await this.userRepository.findOne({
+      where: { email: authRequest.email },
     });
-    return user;
+
+    if (existingUser) {
+      throw new ConflictException('User with this email already exists');
+    }
+
+    const passwordHash = hashPassword(authRequest.password);
+
+    const user = this.userRepository.create({
+      email: authRequest.email,
+      passwordHash,
+      name: authRequest.email.split('@')[0],
+      role: UserRole.CUSTOMER,
+    });
+
+    await this.userRepository.save(user);
+
+    const accessToken = signJwt({
+      sub: user.id,
+      email: user.email,
+      role: user.role as 'customer' | 'admin',
+    });
+
+    const refreshToken = signRefreshToken({
+      sub: user.id,
+      email: user.email,
+      role: user.role as 'customer' | 'admin',
+    });
+
+    this.logger.log(`User registered successfully: ${user.id}`);
+
+    return {
+      accessToken,
+      refreshToken,
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        role: user.role as 'customer' | 'admin',
+      },
+    };
   }
 
-  async validateUser(email: string, password: string) {
-    const user = await this.userRepository.findByEmail(email);
+  async login(authRequest: AuthRequest): Promise<AuthResponse> {
+    this.logger.log(`Login attempt for: ${authRequest.email}`);
+
+    const user = await this.userRepository.findOne({
+      where: { email: authRequest.email },
+    });
+
     if (!user) {
-      return null;
+      throw new UnauthorizedException('Invalid credentials');
     }
 
-    const isValid = comparePassword(password, user.passwordHash);
-    if (!isValid) {
-      return null;
+    const isPasswordValid = comparePassword(authRequest.password, user.passwordHash);
+
+    if (!isPasswordValid) {
+      throw new UnauthorizedException('Invalid credentials');
     }
 
-    return user;
+    const accessToken = signJwt({
+      sub: user.id,
+      email: user.email,
+      role: user.role as 'customer' | 'admin',
+    });
+
+    const refreshToken = signRefreshToken({
+      sub: user.id,
+      email: user.email,
+      role: user.role as 'customer' | 'admin',
+    });
+
+    this.logger.log(`User logged in successfully: ${user.id}`);
+
+    return {
+      accessToken,
+      refreshToken,
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        role: user.role as 'customer' | 'admin',
+      },
+    };
   }
 
-  async findUserByEmail(email: string) {
-    return this.userRepository.findByEmail(email);
-  }
+  async refresh(refreshToken: string): Promise<AuthResponse> {
+    this.logger.log('Refreshing token');
 
-  async findUserById(id: string) {
-    return this.userRepository.findById(id);
-  }
-
-  checkPermission(user: { roles?: string[] }, action: string): boolean {
-    if (user.roles && user.roles.includes('admin')) {
-      return true;
+    let payload;
+    try {
+      payload = verifyRefreshToken(refreshToken);
+    } catch {
+      throw new UnauthorizedException('Invalid refresh token');
     }
-    return false;
+
+    const user = await this.userRepository.findOne({
+      where: { id: payload.sub },
+    });
+
+    if (!user) {
+      throw new UnauthorizedException('User not found');
+    }
+
+    const accessToken = signJwt({
+      sub: user.id,
+      email: user.email,
+      role: user.role as 'customer' | 'admin',
+    });
+
+    const newRefreshToken = signRefreshToken({
+      sub: user.id,
+      email: user.email,
+      role: user.role as 'customer' | 'admin',
+    });
+
+    this.logger.log(`Token refreshed for user: ${user.id}`);
+
+    return {
+      accessToken,
+      refreshToken: newRefreshToken,
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        role: user.role as 'customer' | 'admin',
+      },
+    };
+  }
+
+  async getUserById(userId: string): Promise<AuthResponse['user']> {
+    this.logger.log(`Getting user info: ${userId}`);
+
+    const user = await this.userRepository.findOne({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    return {
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      role: user.role as 'customer' | 'admin',
+    };
   }
 }

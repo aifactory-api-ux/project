@@ -1,95 +1,58 @@
-import { Controller, Post, Get, Body, Param, Headers, HttpCode, HttpStatus, UnauthorizedException, ConflictException, UnprocessableEntityException } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Get,
+  Body,
+  HttpCode,
+  HttpStatus,
+  UnauthorizedException,
+  Headers,
+} from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { SessionService } from './session.service';
+import { AuthRequest, AuthResponse, RefreshTokenRequest } from '../shared/dto/auth.dto';
+import { verifyJwt } from '../shared/utils/jwt';
 
-@Controller('auth')
+@Controller('api/auth')
 export class AuthController {
-  constructor(
-    private readonly authService: AuthService,
-    private readonly sessionService: SessionService,
-  ) {}
+  constructor(private readonly authService: AuthService) {}
 
   @Post('register')
   @HttpCode(HttpStatus.CREATED)
-  async register(@Body() body: { email: string; password: string; fullName: string }) {
-    if (!body.email || !body.password || !body.fullName) {
-      throw new UnprocessableEntityException('Missing required fields');
-    }
-
-    const existingUser = await this.authService.findUserByEmail(body.email);
-    if (existingUser) {
-      throw new ConflictException('Email already exists');
-    }
-
-    const user = await this.authService.register(body.email, body.password, body.fullName);
-    return {
-      id: user.id,
-      email: user.email,
-      fullName: user.fullName,
-      createdAt: user.createdAt,
-      updatedAt: user.updatedAt,
-    };
+  async register(@Body() authRequest: AuthRequest): Promise<AuthResponse> {
+    return this.authService.register(authRequest);
   }
 
   @Post('login')
-  @HttpCode(HttpStatus.OK)
-  async login(@Body() body: { email: string; password: string }) {
-    if (!body.email || !body.password) {
-      throw new UnprocessableEntityException('Missing required fields');
-    }
+  @HttpCode(HttpStatus.CREATED)
+  async login(@Body() authRequest: AuthRequest): Promise<AuthResponse> {
+    return this.authService.login(authRequest);
+  }
 
-    const user = await this.authService.validateUser(body.email, body.password);
-    if (!user) {
-      throw new UnauthorizedException('Invalid credentials');
+  @Post('refresh')
+  @HttpCode(HttpStatus.CREATED)
+  async refresh(@Body() refreshRequest: RefreshTokenRequest): Promise<AuthResponse> {
+    if (!refreshRequest.refreshToken) {
+      throw new UnauthorizedException('Refresh token is required');
     }
-
-    const token = await this.sessionService.createSession(user);
-    return {
-      token,
-      user: {
-        id: user.id,
-        email: user.email,
-        fullName: user.fullName,
-        createdAt: user.createdAt,
-        updatedAt: user.updatedAt,
-      },
-    };
+    return this.authService.refresh(refreshRequest.refreshToken);
   }
 
   @Get('me')
-  async getMe(@Headers('authorization') authHeader: string) {
+  @HttpCode(HttpStatus.OK)
+  async me(@Headers('authorization') authHeader: string): Promise<AuthResponse['user']> {
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
       throw new UnauthorizedException('Missing or invalid authorization header');
     }
 
     const token = authHeader.substring(7);
-    const payload = await this.sessionService.validateToken(token);
-    if (!payload) {
-      throw new UnauthorizedException('Invalid token');
+
+    let payload;
+    try {
+      payload = verifyJwt(token);
+    } catch {
+      throw new UnauthorizedException('Invalid or expired token');
     }
 
-    const user = await this.authService.findUserById(payload.userId);
-    if (!user) {
-      throw new UnauthorizedException('User not found');
-    }
-
-    return {
-      id: user.id,
-      email: user.email,
-      fullName: user.fullName,
-      createdAt: user.createdAt,
-      updatedAt: user.updatedAt,
-    };
-  }
-
-  @Post('logout')
-  @HttpCode(HttpStatus.NO_CONTENT)
-  async logout(@Headers('authorization') authHeader: string) {
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      throw new UnauthorizedException('Missing or invalid authorization header');
-    }
-
-    const token = authHeader.substring(7);
-    await this.sessionService.invalidateSession(token);
+    return this.authService.getUserById(payload.sub);
   }
 }

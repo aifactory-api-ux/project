@@ -2,102 +2,243 @@
 
 ## 1. ARCHITECTURE OVERVIEW
 
-**Components:**
-- **Backend:** Single NestJS service (`dispatch-service`) for dispatch/order management, using PostgreSQL for persistence and Redis for caching/session.
-- **Shared Modules:** DTOs and utilities shared between backend modules.
-- **Infrastructure:** Docker Compose for orchestration, with healthchecks and environment variable management. Local deployment only (no cloud).
-- **Database:** PostgreSQL 15.x, with auto-migration and seed data for plants, distribution centers, and dispatches.
-- **Cache:** Redis 7.x for session/cache.
-- **Frontend:** (Not in scope for this phase; backend-only plan.)
+**Architecture:**  
+- Microservices (NestJS/Node.js 20, TypeScript 5)
+- PostgreSQL 15 per service (RDS in prod)
+- Redis 7 for caching/session (ElastiCache in prod)
+- RabbitMQ 3.x for async messaging
+- AWS S3 for product images (integration stubbed for MVP)
+- Dockerized, orchestrated with docker-compose (local) and Kubernetes (EKS in prod)
+- API Gateway (future), direct REST for MVP
 
-**Models:**
-- **DispatchDto, DispatchCreateDto, ProductDispatchDto, ProductDispatchCreateDto** (see SPEC.md §2)
-- **Database schema:** dispatches, product_dispatches, plants, distribution_centers, vehicles, drivers (minimal for foreign keys).
+**Services:**  
+- **auth-service** (port 23001): User registration, login, JWT, refresh, user info
+- **product-service** (port 23002): Product CRUD, category filtering
+- **order-service** (port 23003): Order creation, status, history
+- **user-service** (port 23004): User profile, admin user management
 
-**API Endpoints (SPEC.md §3):**
-- POST `/api/dispatch`
-- GET `/api/dispatch`
-- GET `/api/dispatch/:id`
-- PATCH `/api/dispatch/:id/status`
-- DELETE `/api/dispatch/:id`
+**Shared:**  
+- DTOs/interfaces for Product, User, Order, Auth
+- JWT utilities
+- Shared config/constants
 
-**Folder Structure (SPEC.md §4):**
-- backend/dispatch-service/src/modules/dispatch/...
-- backend/shared/dto/, backend/shared/utils/
-- backend/dispatch-service/src/config/
-- backend/dispatch-service/Dockerfile
-- docker-compose.yml, .env.example, run.sh, README.md, .gitignore, .dockerignore
+**Database:**  
+- Each service has its own DB schema (PostgreSQL)
+- Models: User, Product, Order, OrderItem, Category, Payment, Notification
+
+**Infrastructure:**  
+- docker-compose.yml for all services, Redis, RabbitMQ, Postgres
+- .env.example for all required variables
+- run.sh for local orchestration
+- README.md for setup
+
+**Testing:**  
+- Jest for backend unit/integration tests
+- E2E test per service
+
+**Folder Structure:**  
+- backend/auth-service/
+- backend/product-service/
+- backend/order-service/
+- backend/user-service/
+- backend/shared/
+- frontend/ (not in scope for backend-only phase)
+- docker-compose.yml, .env.example, run.sh, README.md at root
 
 ## 2. ACCEPTANCE CRITERIA
 
-1. The backend service exposes all dispatch management endpoints as specified, with correct request/response DTOs and validation.
-2. Database schema is auto-migrated and seeded with 4 plants, 5 distribution centers, and 30 dispatches on startup; no manual DB setup required.
-3. All services start via `./run.sh`, pass healthchecks, and are accessible at the documented ports; environment variables are validated at startup.
+1. All backend services start via `./run.sh`, pass healthchecks, and expose their documented REST endpoints.
+2. Each service auto-initializes its database schema and seeds with 3–5 example records on first run.
+3. All endpoints validate input, enforce RBAC (where required), and return correct responses as per SPEC.md.
+4. JWT authentication and role-based access are enforced on all protected endpoints.
+5. All services log in structured JSON format and fail fast if required environment variables are missing.
+6. E2E tests for each service pass: happy path and error cases for each endpoint.
+7. Infrastructure scripts (.env.example, run.sh, docker-compose.yml) enable zero-manual-steps local setup.
 
 ## TEAM SCOPE (MANDATORY — PARSED BY THE PIPELINE)
 Every executable item MUST include exactly one line at the end of the item block (after Validation):
 **Role:** <role_id> (<category>)
 
+---
+
 ## 3. EXECUTABLE ITEMS
 
-### ITEM 1: Foundation — shared types, DTOs, DB schema, config, and utilities
-**Goal:** Create all shared code and configuration required by backend modules, including DTOs, utility functions, and the complete database schema (SQL). This includes:
-- All DTOs for dispatch and product-dispatch (as per SPEC.md §2)
-- Shared product DTO
-- Date/time utility functions
-- Environment variable validation and shared config
-- Complete SQL schema for all required tables and indexes (dispatches, product_dispatches, plants, distribution_centers, vehicles, drivers)
+### ITEM 1: Foundation — shared types, DTOs, DB schemas, config, utilities
+**Goal:**  
+Establish all shared code and contracts for the backend microservices.  
+Includes:  
+- DTOs/interfaces for Product, User, Order, Auth (as per SPEC.md)
+- JWT utility functions
+- Shared config (env validation, constants)
+- Database entity definitions for User, Product, Order, OrderItem, Category, Payment, Notification (TypeORM entities)
+- Shared error classes
+
 **Files to create:**
 - backend/shared/dto/product.dto.ts
-- backend/shared/utils/date.ts
-- backend/dispatch-service/src/modules/dispatch/dto/dispatch.dto.ts
-- backend/dispatch-service/src/modules/dispatch/dto/product-dispatch.dto.ts
-- backend/dispatch-service/src/modules/dispatch/entities/dispatch.entity.ts
-- backend/dispatch-service/src/config/database.config.ts
-- backend/dispatch-service/src/config/redis.config.ts
-- backend/dispatch-service/src/db/schema.sql
+- backend/shared/dto/user.dto.ts
+- backend/shared/dto/order.dto.ts
+- backend/shared/dto/auth.dto.ts
+- backend/shared/utils/jwt.ts
+- backend/shared/config/env.ts
+- backend/shared/entities/product.entity.ts
+- backend/shared/entities/user.entity.ts
+- backend/shared/entities/order.entity.ts
+- backend/shared/entities/category.entity.ts
+- backend/shared/entities/payment.entity.ts
+- backend/shared/entities/notification.entity.ts
+
+**Tests required:**
+- backend/shared/tests/jwt.util.test.ts (JWT sign/verify/expiration)
+- backend/shared/tests/env.test.ts (env validation, missing/invalid vars)
+- backend/shared/tests/entities.test.ts (entity instantiation, relations)
+
 **Dependencies:** None
-**Validation:** All DTOs/interfaces are importable and used by backend modules; running the schema SQL creates all required tables and indexes without error.
+
+**Validation:**  
+- `npm run test` in backend/shared passes all tests  
+- All DTOs/interfaces match SPEC.md  
+- All entities instantiate and relate as per ERD
+
 **Role:** role-tl (technical_lead)
 
-### ITEM 2: Dispatch Service — API endpoints, business logic, healthcheck
-**Goal:** Implement the dispatch management module in NestJS, exposing all endpoints as per SPEC.md §3:
-- POST `/api/dispatch` (create dispatch)
-- GET `/api/dispatch` (list dispatches, with filters)
-- GET `/api/dispatch/:id` (get dispatch by ID)
-- PATCH `/api/dispatch/:id/status` (update status)
-- DELETE `/api/dispatch/:id` (delete dispatch)
-- GET `/health` (service healthcheck)
-Includes: controller, service, module definition, and integration with DB and Redis configs. Implements input validation, error handling, and structured logging.
-**Files to create:**
-- backend/dispatch-service/src/main.ts
-- backend/dispatch-service/src/app.module.ts
-- backend/dispatch-service/src/modules/dispatch/dispatch.controller.ts
-- backend/dispatch-service/src/modules/dispatch/dispatch.service.ts
-- backend/dispatch-service/src/modules/dispatch/dispatch.module.ts
-**Dependencies:** Item 1
-**Validation:** All endpoints respond as per SPEC.md; healthcheck returns status 200 with service/version; logs are structured; invalid input returns 400 with error message.
-**Role:** role-be (backend_developer)
+---
 
-### ITEM 3: Dispatch Service — Dockerfile, TypeScript config, and E2E test stub
-**Goal:** Containerize the dispatch-service for local deployment, ensuring production-ready build and correct port exposure. Provide TypeScript config for strict type checking. Include E2E test stub (no test code, just file for future use).
-**Files to create:**
-- backend/dispatch-service/Dockerfile (multi-stage, EXPOSE 23001, runs on correct port, copies shared/ modules)
-- backend/dispatch-service/tsconfig.json (strict mode, paths for shared modules)
-- backend/dispatch-service/test/dispatch.e2e-spec.ts (empty stub, as per SPEC.md)
-**Dependencies:** Item 1
-**Validation:** `docker build` and `docker run` start the service on port 23001; TypeScript compiles with no errors; E2E test file exists for future use.
-**Role:** role-be (backend_developer)
+### ITEM 2: Auth Service — registration, login, JWT, refresh, user info
+**Goal:**  
+Implement the authentication service with endpoints:  
+- POST /api/auth/register (register new user)
+- POST /api/auth/login (login, issue JWT/refresh)
+- POST /api/auth/refresh (refresh tokens)
+- GET /api/auth/me (current user info, JWT required)
 
-### ITEM 4: Infrastructure & Deployment (Docker Compose, env, orchestration)
-**Goal:** Provide complete orchestration for local deployment, including:
-- docker-compose.yml (dispatch-service, postgres, redis; correct ports, healthchecks, depends_on with service_healthy)
-- .env.example (all required variables, with descriptions and example values)
-- .gitignore (excludes node_modules, dist, .env, etc.)
-- .dockerignore (excludes node_modules, .git, dist, logs)
-- run.sh (checks Docker, builds, starts, waits for healthy, prints access URL)
-- README.md (setup, run, endpoints, troubleshooting)
-- docs/architecture.md (system diagram and component descriptions)
+**Files to create:**
+- backend/auth-service/Dockerfile (EXPOSE 23001, multi-stage, non-root, COPY ../shared)
+- backend/auth-service/src/main.ts (NestJS bootstrap)
+- backend/auth-service/src/app.module.ts (imports, config)
+- backend/auth-service/src/auth.controller.ts (all endpoints)
+- backend/auth-service/src/auth.service.ts (business logic)
+- backend/auth-service/src/user.entity.ts (import from shared)
+- backend/auth-service/test/auth.e2e-spec.ts (Jest E2E tests)
+- backend/auth-service/package.json
+- backend/auth-service/tsconfig.json
+- backend/auth-service/nest-cli.json
+
+**Dependencies:** Item 1
+
+**Validation:**  
+- `docker build .` and `docker run` expose service on 23001  
+- All endpoints respond as per SPEC.md  
+- E2E tests pass: register, login, refresh, me, error cases
+
+**Role:** role-be-auth (backend_developer)
+
+---
+
+### ITEM 3: Product Service — product CRUD, category filtering
+**Goal:**  
+Implement the product service with endpoints:  
+- GET /api/products (list, filter by category)
+- GET /api/products/:id (detail)
+- POST /api/products (admin only, create)
+- PUT /api/products/:id (admin only, update)
+- DELETE /api/products/:id (admin only, delete)
+
+**Files to create:**
+- backend/product-service/Dockerfile (EXPOSE 23002, multi-stage, non-root, COPY ../shared)
+- backend/product-service/src/main.ts
+- backend/product-service/src/app.module.ts
+- backend/product-service/src/product.controller.ts
+- backend/product-service/src/product.service.ts
+- backend/product-service/src/product.entity.ts (import from shared)
+- backend/product-service/test/product.e2e-spec.ts
+- backend/product-service/package.json
+- backend/product-service/tsconfig.json
+- backend/product-service/nest-cli.json
+
+**Dependencies:** Item 1
+
+**Validation:**  
+- `docker build .` and `docker run` expose service on 23002  
+- All endpoints respond as per SPEC.md  
+- E2E tests pass: list, filter, create, update, delete, error cases
+
+**Role:** role-be-product (backend_developer)
+
+---
+
+### ITEM 4: Order Service — order creation, status, history
+**Goal:**  
+Implement the order service with endpoints:  
+- GET /api/orders (user's orders, or all if admin)
+- GET /api/orders/:id (order detail)
+- POST /api/orders (create order)
+- PUT /api/orders/:id/status (admin only, update status)
+
+**Files to create:**
+- backend/order-service/Dockerfile (EXPOSE 23003, multi-stage, non-root, COPY ../shared)
+- backend/order-service/src/main.ts
+- backend/order-service/src/app.module.ts
+- backend/order-service/src/order.controller.ts
+- backend/order-service/src/order.service.ts
+- backend/order-service/src/order.entity.ts (import from shared)
+- backend/order-service/test/order.e2e-spec.ts
+- backend/order-service/package.json
+- backend/order-service/tsconfig.json
+- backend/order-service/nest-cli.json
+
+**Dependencies:** Item 1
+
+**Validation:**  
+- `docker build .` and `docker run` expose service on 23003  
+- All endpoints respond as per SPEC.md  
+- E2E tests pass: create, get, update status, error cases
+
+**Role:** role-be-order (backend_developer)
+
+---
+
+### ITEM 5: User Service — user profile, admin user management
+**Goal:**  
+Implement the user service with endpoints:  
+- GET /api/users/me (current user profile)
+- GET /api/users/:id (admin only, user detail)
+- PUT /api/users/me (update own profile)
+
+**Files to create:**
+- backend/user-service/Dockerfile (EXPOSE 23004, multi-stage, non-root, COPY ../shared)
+- backend/user-service/src/main.ts
+- backend/user-service/src/app.module.ts
+- backend/user-service/src/user.controller.ts
+- backend/user-service/src/user.service.ts
+- backend/user-service/src/user.entity.ts (import from shared)
+- backend/user-service/test/user.e2e-spec.ts
+- backend/user-service/package.json
+- backend/user-service/tsconfig.json
+- backend/user-service/nest-cli.json
+
+**Dependencies:** Item 1
+
+**Validation:**  
+- `docker build .` and `docker run` expose service on 23004  
+- All endpoints respond as per SPEC.md  
+- E2E tests pass: get profile, update, admin get, error cases
+
+**Role:** role-be-user (backend_developer)
+
+---
+
+### ITEM 6: Infrastructure & Deployment — orchestration, scripts, docs
+**Goal:**  
+Provide complete local orchestration and documentation for all backend services.  
+Includes:  
+- docker-compose.yml (all services, Redis, RabbitMQ, Postgres, healthchecks, depends_on)
+- .env.example (all required env vars, descriptions, example values)
+- .gitignore (node_modules, dist, .env, etc.)
+- .dockerignore (node_modules, .git, dist, *.log)
+- run.sh (checks Docker, builds, starts, waits for healthy, prints URLs)
+- README.md (setup, run, test, endpoints)
+- docs/architecture.md (system diagram, component descriptions)
+
 **Files to create:**
 - docker-compose.yml
 - .env.example
@@ -106,6 +247,13 @@ Includes: controller, service, module definition, and integration with DB and Re
 - run.sh
 - README.md
 - docs/architecture.md
-**Dependencies:** Items 1, 2, 3
-**Validation:** `./run.sh` completes without errors; all services healthy; backend accessible at http://localhost:23001/api/dispatch; healthcheck endpoint responds; seed data present in DB.
+
+**Dependencies:** Items 1–5
+
+**Validation:**  
+- `./run.sh` completes without errors  
+- All services report healthy  
+- All endpoints accessible at documented ports  
+- README instructions work as written
+
 **Role:** role-devops (devops_support)

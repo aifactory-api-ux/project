@@ -2,8 +2,8 @@
   "plan_items": [
     {
       "item_number": 1,
-      "title": "Foundation \u2014 shared types, DTOs, DB schema, config, and utilities",
-      "goal": "Create all shared code and configuration required by backend modules, including DTOs, utility functions, and the complete database schema (SQL). This includes:",
+      "title": "Foundation \u2014 shared types, DTOs, DB schemas, config, utilities",
+      "goal": "Establish all shared code and contracts for the backend microservices.",
       "files": [
         {
           "path": "backend/shared/dto/product.dto.ts",
@@ -11,38 +11,43 @@
           "purpose": ""
         },
         {
-          "path": "backend/shared/utils/date.ts",
+          "path": "backend/shared/dto/user.dto.ts",
           "action": "create",
           "purpose": ""
         },
         {
-          "path": "backend/dispatch-service/src/modules/dispatch/dto/dispatch.dto.ts",
+          "path": "backend/shared/dto/order.dto.ts",
           "action": "create",
           "purpose": ""
         },
         {
-          "path": "backend/dispatch-service/src/modules/dispatch/dto/product-dispatch.dto.ts",
+          "path": "backend/shared/dto/auth.dto.ts",
           "action": "create",
           "purpose": ""
         },
         {
-          "path": "backend/dispatch-service/src/modules/dispatch/entities/dispatch.entity.ts",
+          "path": "backend/shared/utils/jwt.ts",
           "action": "create",
           "purpose": ""
         },
         {
-          "path": "backend/dispatch-service/src/config/database.config.ts",
+          "path": "backend/shared/entities/product.entity.ts",
           "action": "create",
           "purpose": ""
         },
         {
-          "path": "backend/dispatch-service/src/config/redis.config.ts",
+          "path": "backend/shared/entities/user.entity.ts",
+          "action": "create",
+          "purpose": ""
+        },
+        {
+          "path": "backend/shared/entities/order.entity.ts",
           "action": "create",
           "purpose": ""
         }
       ],
       "dependencies": "None",
-      "validation": "All DTOs/interfaces are importable and used by backend modules; running the schema SQL creates all required tables and indexes without error.",
+      "validation": "- `npm run test` in backend/shared passes all tests",
       "status": "failed",
       "role_id": "role-tl",
       "role_category": "technical_lead",
@@ -50,58 +55,119 @@
     },
     {
       "item_number": 2,
-      "title": "Dispatch Service \u2014 API endpoints, business logic, healthcheck",
-      "goal": "Implement the dispatch management module in NestJS, exposing all endpoints as per SPEC.md \u00a73:",
-      "files": [
-        {
-          "path": "backend/dispatch-service/src/main.ts",
-          "action": "create",
-          "purpose": ""
-        },
-        {
-          "path": "backend/dispatch-service/src/app.module.ts",
-          "action": "create",
-          "purpose": ""
-        },
-        {
-          "path": "backend/dispatch-service/src/modules/dispatch/dispatch.controller.ts",
-          "action": "create",
-          "purpose": ""
-        },
-        {
-          "path": "backend/dispatch-service/src/modules/dispatch/dispatch.service.ts",
-          "action": "create",
-          "purpose": ""
-        },
-        {
-          "path": "backend/dispatch-service/src/modules/dispatch/dispatch.module.ts",
-          "action": "create",
-          "purpose": ""
-        }
-      ],
+      "title": "Auth Service \u2014 registration, login, JWT, refresh, user info",
+      "goal": "Implement the authentication service with endpoints:",
+      "files": [],
       "dependencies": "Item 1",
-      "validation": "All endpoints respond as per SPEC.md; healthcheck returns status 200 with service/version; logs are structured; invalid input returns 400 with error message.",
+      "validation": "- `docker build .` and `docker run` expose service on 23001",
       "status": "done",
-      "role_id": "role-be",
+      "role_id": "role-be-auth",
       "role_category": "backend_developer",
       "wave": 2
     },
     {
       "item_number": 3,
-      "title": "Dispatch Service \u2014 Dockerfile, TypeScript config, and E2E test stub",
-      "goal": "Containerize the dispatch-service for local deployment, ensuring production-ready build and correct port exposure. Provide TypeScript config for strict type checking. Include E2E test stub (no test code, just file for future use).",
-      "files": [],
+      "title": "Product Service \u2014 product CRUD, category filtering",
+      "goal": "Implement the product service with endpoints:",
+      "files": [
+        {
+          "path": "backend/product-service/src/main.ts",
+          "action": "create",
+          "purpose": ""
+        },
+        {
+          "path": "backend/product-service/src/app.module.ts",
+          "action": "create",
+          "purpose": ""
+        },
+        {
+          "path": "backend/product-service/src/product.controller.ts",
+          "action": "create",
+          "purpose": ""
+        },
+        {
+          "path": "backend/product-service/src/product.service.ts",
+          "action": "create",
+          "purpose": ""
+        }
+      ],
       "dependencies": "Item 1",
-      "validation": "`docker build` and `docker run` start the service on port 23001; TypeScript compiles with no errors; E2E test file exists for future use.",
+      "validation": "- `docker build .` and `docker run` expose service on 23002",
       "status": "done",
-      "role_id": "role-be",
+      "role_id": "role-be-product",
       "role_category": "backend_developer",
       "wave": 2
     },
     {
       "item_number": 4,
-      "title": "Infrastructure & Deployment (Docker Compose, env, orchestration)",
-      "goal": "Provide complete orchestration for local deployment, including:",
+      "title": "Order Service \u2014 order creation, status, history",
+      "goal": "Implement the order service with endpoints:",
+      "files": [
+        {
+          "path": "backend/order-service/src/main.ts",
+          "action": "create",
+          "purpose": ""
+        },
+        {
+          "path": "backend/order-service/src/app.module.ts",
+          "action": "create",
+          "purpose": ""
+        },
+        {
+          "path": "backend/order-service/src/order.controller.ts",
+          "action": "create",
+          "purpose": ""
+        },
+        {
+          "path": "backend/order-service/src/order.service.ts",
+          "action": "create",
+          "purpose": ""
+        }
+      ],
+      "dependencies": "Item 1",
+      "validation": "- `docker build .` and `docker run` expose service on 23003",
+      "status": "done",
+      "role_id": "role-be-order",
+      "role_category": "backend_developer",
+      "wave": 2
+    },
+    {
+      "item_number": 5,
+      "title": "User Service \u2014 user profile, admin user management",
+      "goal": "Implement the user service with endpoints:",
+      "files": [
+        {
+          "path": "backend/user-service/src/main.ts",
+          "action": "create",
+          "purpose": ""
+        },
+        {
+          "path": "backend/user-service/src/app.module.ts",
+          "action": "create",
+          "purpose": ""
+        },
+        {
+          "path": "backend/user-service/src/user.controller.ts",
+          "action": "create",
+          "purpose": ""
+        },
+        {
+          "path": "backend/user-service/src/user.service.ts",
+          "action": "create",
+          "purpose": ""
+        }
+      ],
+      "dependencies": "Item 1",
+      "validation": "- `docker build .` and `docker run` expose service on 23004",
+      "status": "done",
+      "role_id": "role-be-user",
+      "role_category": "backend_developer",
+      "wave": 2
+    },
+    {
+      "item_number": 6,
+      "title": "Infrastructure & Deployment \u2014 orchestration, scripts, docs",
+      "goal": "Provide complete local orchestration and documentation for all backend services.",
       "files": [
         {
           "path": "docker-compose.yml",
@@ -119,15 +185,15 @@
           "purpose": ""
         }
       ],
-      "dependencies": "Items 1, 2, 3",
-      "validation": "`./run.sh` completes without errors; all services healthy; backend accessible at http://localhost:23001/api/dispatch; healthcheck endpoint responds; seed data present in DB.",
+      "dependencies": "Items 1\u20135",
+      "validation": "- `./run.sh` completes without errors",
       "status": "done",
       "role_id": "role-devops",
       "role_category": "devops_support",
       "wave": 3
     },
     {
-      "item_number": 5,
+      "item_number": 7,
       "title": "Frontend Infrastructure Setup (React 18 + Vite)",
       "goal": "Create ALL foundational React 18 + Vite files required before any page can run. This item MUST be completed first and completely. Includes: package.json, framework config with /api/* proxy, entrypoint, router / app shell with routes for all pages, base HTTP client (RELATIVE URLs ONLY), auth state management, nginx.conf (proxy /api/* \u2192 backend), multi-stage Dockerfile, and frontend service in docker-compose.yml. READ these context files before implementing: `docs/uiux/design-contract.md`, `docs/uiux/api-contract.yaml`, `docs/uiux/component-guide.md`.",
       "design_specs": {
@@ -136,7 +202,7 @@
         "critical_constraint": "NEVER use build-time env vars for the API URL (VITE_API_URL, NEXT_PUBLIC_API_URL, NG_APP_API_URL, etc.). ALL HTTP calls MUST use RELATIVE paths (/api/...). The web server (nginx or framework dev proxy) routes /api/* to the backend container.",
         "proxy_pattern": "Dev: framework config proxy (vite server.proxy, next.config rewrites, angular proxy.conf.json, etc.). Prod: nginx location /api/ { proxy_pass http://backend:23001/api/; }",
         "api_client": "One shared api.ts (or api.js) module that ONLY uses relative paths. All pages/components import from this module \u2014 no direct fetch() calls in UI code.",
-        "pages": "DashboardPrincipal"
+        "pages": "InicioHome, CatlogodeProductos, DetalledeProducto, CarritodeCompras, LoginPage, RegisterPage, ProductListPage, ProductDetailPage, OrderHistoryPage, OrderDetailPage"
       },
       "files": [
         {
@@ -167,7 +233,7 @@
         {
           "path": "frontend/src/App.tsx",
           "action": "create",
-          "purpose": "<Routes> with one <Route> per page: /dashboardprincipal. Catch-all \u2192 NotFoundPage. Protected routes wrapped in <RequireAuth>."
+          "purpose": "<Routes> with one <Route> per page: /iniciohome, /catlogodeproductos, /detalledeproducto, /carritodecompras, /login, /register, /productlist, /productdetail, /orderhistory, /orderdetail. Catch-all \u2192 NotFoundPage. Protected routes wrapped in <RequireAuth>."
         },
         {
           "path": "frontend/src/lib/api.ts",
@@ -203,224 +269,131 @@
       "wave": 4
     },
     {
-      "item_number": 6,
-      "title": "DashboardPrincipalPage",
-      "goal": "Implements the \"Dashboard Principal\" Figma frame as the main dashboard page.",
+      "item_number": 8,
+      "title": "HomePage (Inicio)",
+      "goal": "Implements the Inicio (Home) Figma frame. Screenshot: none",
       "design_specs": {
-        "background": "`colors.background` (#F4F6F9) (light), `colors.darkBackground` (#1A1A2E) (dark)",
-        "card": "`colors.surface` (#FFFFFF) (light), `colors.darkSurface` (#2D2D44) (dark)",
-        "text": "`colors.textPrimary` (#1A1A2E), `colors.textSecondary` (#6B7280), `colors.darkTextPrimary` (#EAEAEA), `colors.darkTextSecondary` (#A0A0B0)",
-        "border": "`colors.border` (#D1D5DB), `colors.darkBorder` (#3D3D5C)",
-        "accent": "`colors.accent` (#27AE60)",
-        "font_family": "`Inter, system-ui, sans-serif`",
-        "page_title": "h1, 28px, 700, 1.3",
-        "section_headings": "h2, 22px, 600, 1.4",
-        "kpi_values": "32px, 700, 1.2",
-        "kpi_labels": "14px, 500, 1.4",
-        "table_body": "14px, 400, 1.5",
-        "small": "12px, 400, 1.4",
-        "page_padding": "`spacing.xl` (32px)",
-        "section_gap": "`spacing.lg` (24px)",
-        "card_padding": "`spacing.md` (16px)",
-        "kpi_card_gap": "`spacing.md` (16px)",
-        "chart_gap": "`spacing.lg` (24px)",
-        "desktop": "KPIs in 4-column grid, charts in 2-column grid, all sections stacked vertically",
-        "tablet_(\u22641024px)": "KPIs in 2x2 grid, charts stacked",
-        "mobile_(\u2264768px)": "All sections in single column"
+        "colors": "primary #F28C28, primary_light #FDBF60, primary_dark #C76A1A, secondary #4A90D9, accent #E85D75, neutral_white #FFFFFF, neutral_light #F5F5F5, neutral_medium #E0E0E0, neutral_dark #333333, neutral_black #1A1A1A",
+        "typography": "h1 32px/700/1.2 #333333, h2 24px/600/1.3 #333333, body large 16px/400/1.5 #333333, button 16px/600/1.2 #FFFFFF",
+        "spacing": "section padding 64px, grid gap 32px, card gap 24px, card padding 24px, between sections 48px",
+        "layout": "vertical stacking of hero, categories, best sellers, testimonials, newsletter; hero uses 2-column grid (image left, text/CTA right) at \u22651024px, stacks on mobile; categories and best sellers in responsive grid (min 280px card, gap 24px); testimonials in horizontal scroll at <768px; newsletter centered with max-width 480px",
+        "components": "Navbar Principal, CTA Button (Primario), Card de Producto, Footer, Input de Formulario, Badge / Etiqueta, Spinner / Loader",
+        "states": "CTA Button hover (bg #C76A1A, elevation 0 4px 16px rgba(0,0,0,0.12)), focus (outline 2px #FDBF60), disabled (bg #E0E0E0, text #BDBDBD); Card hover (shadow elevated), Input focus (border #F28C28), error (border #E74C3C, caption #E74C3C); Spinner animates on loading"
       },
       "files": [
         {
-          "path": "frontend/src/pages/DashboardPrincipalPage.tsx",
+          "path": "frontend/src/pages/HomePage.tsx",
           "action": "create",
-          "purpose": "Main dashboard page layout and composition"
+          "purpose": "Home page with hero, featured categories, best sellers, testimonials, newsletter signup"
         }
       ],
-      "dependencies": "Item 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19",
-      "validation": "All sections visible, correct colors and typography, responsive at 1024px and 768px, theme toggle works, API data visible, no placeholder text",
+      "dependencies": "Item 7",
+      "validation": "All specified hex colors present in CSS, all listed components rendered, API-driven product cards visible, CTA and input states visually match, responsive at 768px",
       "status": "done",
       "role_id": "frontend_developer",
       "role_category": "frontend",
       "wave": 5
     },
     {
-      "item_number": 7,
-      "title": "Header",
-      "goal": "Implements the \"Header\" component as specified in Figma.",
-      "design_specs": {
-        "background": "`colors.primary` (#1E3A5F) (light), `colors.darkSurface` (#2D2D44) (dark)",
-        "text": "`colors.surface` (#FFFFFF) (light), `colors.darkTextPrimary` (#EAEAEA) (dark)",
-        "theme_toggle_icon": "`colors.accent` (#27AE60) for active, `colors.secondary` (#4A90D9) for inactive",
-        "logo": "h1, 28px, 700, 1.3",
-        "subtitle": "h3, 18px, 600, 1.4",
-        "height": "64px",
-        "horizontal_padding": "`spacing.xl` (32px)",
-        "gap_between_logo_and_subtitle": "`spacing.sm` (8px)",
-        "theme_toggle_margin-left": "`spacing.lg` (24px)",
-        "flex_row,_align-items": "center, justify-content: space-between",
-        "theme_toggle": "300ms transition, hover/focus with `colors.primaryLight` (#2B5A8C) background"
-      },
-      "files": [
-        {
-          "path": "frontend/src/components/ui/Header.tsx",
-          "action": "create",
-          "purpose": "Header bar with logo, subtitle, and theme toggle"
-        }
-      ],
-      "dependencies": "None",
-      "validation": "Logo and subtitle visible, theme toggle works, correct colors in both modes, Lucide icon 20px, spacing matches spec",
-      "status": "done",
-      "role_id": "frontend_developer",
-      "role_category": "frontend",
-      "wave": 4
-    },
-    {
-      "item_number": 8,
-      "title": "FilterBar",
-      "goal": "Implements the \"FilterBar\" component for plant and status selection.",
-      "design_specs": {
-        "background": "transparent",
-        "select_border": "`colors.border` (#D1D5DB), `colors.darkBorder` (#3D3D5C)",
-        "select_text": "`colors.textPrimary` (#1A1A2E), `colors.darkTextPrimary` (#EAEAEA)",
-        "select_icon": "`colors.secondary` (#4A90D9)",
-        "select_label": "14px, 500, 1.4",
-        "select_value": "14px, 400, 1.5",
-        "gap_between_selects": "`spacing.md` (16px)",
-        "select_padding": "`spacing.sm` (8px) vertical, `spacing.md` (16px) horizontal",
-        "two_selects": "Plant (option \"Todas\"), Status (option \"Todos\")",
-        "focus": "border `colors.primary` (#1E3A5F)",
-        "disabled": "opacity 0.5"
-      },
-      "files": [
-        {
-          "path": "frontend/src/components/ui/FilterBar.tsx",
-          "action": "create",
-          "purpose": "Filter bar with two selects"
-        }
-      ],
-      "dependencies": "None",
-      "validation": "Both selects visible, correct options, border and icon colors, focus state, responsive wrap at 768px",
-      "status": "done",
-      "role_id": "frontend_developer",
-      "role_category": "frontend",
-      "wave": 4
-    },
-    {
       "item_number": 9,
-      "title": "KpiCard",
-      "goal": "Implements the \"KpiCard\" component for KPI display.",
+      "title": "ProductCatalogPage (Cat\u00e1logo de Productos)",
+      "goal": "Implements the Cat\u00e1logo de Productos Figma frame. Screenshot: none",
       "design_specs": {
-        "card_background": "`colors.surface` (#FFFFFF), `colors.darkSurface` (#2D2D44)",
-        "icon": "`colors.accent` (#27AE60) or `colors.secondary` (#4A90D9) depending on KPI",
-        "value": "32px, 700, 1.2",
-        "label": "14px, 500, 1.4",
-        "card_padding": "`spacing.md` (16px)",
-        "gap_between_icon_and_value": "`spacing.sm` (8px)",
-        "flex_row,_align-items": "center",
-        "hover": "shadow `shadows.cardHover` (0 4px 16px rgba(0,0,0,0.12))",
-        "loading": "animated spinner (Lucide Loader, 20px, color inherit)"
+        "colors": "primary #F28C28, primary_dark #C76A1A, secondary #4A90D9, neutral_white #FFFFFF, neutral_light #F5F5F5, neutral_medium #E0E0E0, neutral_dark #333333, accent #E85D75",
+        "typography": "h1 32px/700/1.2 #333333, h2 24px/600/1.3 #333333, body large 16px/400/1.5 #333333, button 16px/600/1.2 #FFFFFF, caption 11px/400/1.3 #333333",
+        "spacing": "sidebar width 240px, grid gap 24px, card padding 24px, filter section gap 16px, section padding 64px, pagination gap 16px",
+        "layout": "2-column layout (sidebar filters left, product grid right) at \u22651024px; sidebar collapses to top filter bar on mobile; product grid responsive (min 280px card, gap 24px); pagination or infinite scroll at bottom",
+        "components": "Navbar Principal, Card de Producto, Input de Formulario, Breadcrumb, Rating Stars, Badge / Etiqueta, Spinner / Loader, Footer",
+        "states": "Card hover (shadow elevated), Add to cart button hover (bg #C76A1A), focus (outline 2px #FDBF60), disabled (bg #E0E0E0, text #BDBDBD); filter input focus (border #F28C28), error (border #E74C3C); Spinner animates on loading"
       },
       "files": [
         {
-          "path": "frontend/src/components/ui/KpiCard.tsx",
+          "path": "frontend/src/pages/ProductCatalogPage.tsx",
           "action": "create",
-          "purpose": "KPI card with icon, value, label, spinner"
+          "purpose": "Product catalog with filters, sorting, grid, and pagination/infinite scroll"
         }
       ],
-      "dependencies": "None",
-      "validation": "Icon, value, label visible, correct colors, hover shadow, spinner on loading, responsive width",
+      "dependencies": "Item 7",
+      "validation": "All specified hex colors present in CSS, all listed components rendered, API-driven product grid and filters visible, filter and button states visually match, responsive at 768px",
       "status": "done",
       "role_id": "frontend_developer",
       "role_category": "frontend",
-      "wave": 4
+      "wave": 5
     },
     {
       "item_number": 10,
-      "title": "TrendChart",
-      "goal": "Implements the \"TrendChart\" component for monthly dispatch trend.",
+      "title": "ProductDetailPage (Detalle de Producto)",
+      "goal": "Implements the Detalle de Producto Figma frame. Screenshot: none",
       "design_specs": {
-        "chart_stroke": "`colors.accent` (#27AE60)",
-        "chart_fill": "`chart.trendChartFill` (rgba(39, 174, 96, 0.2))",
-        "axis/labels": "12px, 400, 1.4",
-        "tooltip": "fade-in 200ms",
-        "chart_padding": "`spacing.md` (16px)",
-        "responsive_width,_min-height": "240px",
-        "loading": "spinner overlay"
+        "colors": "primary #F28C28, primary_dark #C76A1A, secondary #4A90D9, accent #E85D75, neutral_white #FFFFFF, neutral_light #F5F5F5, neutral_medium #E0E0E0, neutral_dark #333333",
+        "typography": "h1 32px/700/1.2 #333333, h2 24px/600/1.3 #333333, h3 20px/600/1.4 #333333, body large 16px/400/1.5 #333333, button 16px/600/1.2 #FFFFFF, caption 11px/400/1.3 #333333",
+        "spacing": "gallery gap 16px, section gap 48px, card padding 24px, between info and gallery 32px, review section gap 24px",
+        "layout": "2-column layout (gallery left, info right) at \u22651024px, stacks on mobile; gallery with main image and thumbnails; info column with name, price, description, quantity selector, add to cart button, badges, reviews below",
+        "components": "Navbar Principal, Card de Producto, CTA Button (Primario), Rating Stars, Badge / Etiqueta, Input de Formulario, Breadcrumb, Modal / Di\u00e1logo, Spinner / Loader, Footer",
+        "states": "Add to cart button hover (bg #C76A1A), focus (outline 2px #FDBF60), disabled (bg #E0E0E0, text #BDBDBD); quantity input focus (border #F28C28), error (border #E74C3C); Modal overlay (bg rgba(0,0,0,0.2)), Spinner animates on loading"
       },
       "files": [
         {
-          "path": "frontend/src/components/ui/TrendChart.tsx",
+          "path": "frontend/src/pages/ProductDetailPage.tsx",
           "action": "create",
-          "purpose": "Area chart for monthly trend"
+          "purpose": "Product detail with gallery, info, add to cart, reviews"
         }
       ],
-      "dependencies": "None",
-      "validation": "Chart renders with correct colors, tooltip on hover, spinner on loading, responsive at 768px",
+      "dependencies": "Item 7",
+      "validation": "All specified hex colors present in CSS, all listed components rendered, API-driven product data and reviews visible, modal and button states visually match, responsive at 768px",
       "status": "done",
       "role_id": "frontend_developer",
       "role_category": "frontend",
-      "wave": 4
+      "wave": 5
     },
     {
       "item_number": 11,
-      "title": "PlantChart",
-      "goal": "Implements the \"PlantChart\" component for dispatch volume by plant.",
+      "title": "CartPage (Carrito de Compras)",
+      "goal": "Implements the Carrito de Compras Figma frame. Screenshot: none",
       "design_specs": {
-        "bar_colors": "`colors.secondary` (#4A90D9), `colors.accent` (#27AE60), `colors.primaryLight` (#2B5A8C) (distinct per plant)",
-        "axis/labels": "12px, 400, 1.4",
-        "tooltip": "fade-in 200ms",
-        "chart_padding": "`spacing.md` (16px)",
-        "responsive_width,_min-height": "240px",
-        "loading": "spinner overlay"
+        "colors": "primary #F28C28, primary_dark #C76A1A, neutral_white #FFFFFF, neutral_light #F5F5F5, neutral_medium #E0E0E0, neutral_dark #333333, accent #E85D75, success #27AE60, error #E74C3C",
+        "typography": "h1 32px/700/1.2 #333333, h2 24px/600/1.3 #333333, body large 16px/400/1.5 #333333, button 16px/600/1.2 #FFFFFF, caption 11px/400/1.3 #333333",
+        "spacing": "section padding 64px, cart item gap 24px, summary card padding 24px, between list and summary 48px",
+        "layout": "2-column layout (cart items left, order summary right) at \u22651024px, stacks on mobile; cart items in vertical list with image, name, price, quantity, subtotal; summary card with subtotal, shipping, total, CTA button",
+        "components": "Navbar Principal, Card de Producto, CTA Button (Primario), Input de Formulario, Badge / Etiqueta, Modal / Di\u00e1logo, Spinner / Loader, Footer",
+        "states": "Proceed to checkout button hover (bg #C76A1A), focus (outline 2px #FDBF60), disabled (bg #E0E0E0, text #BDBDBD); quantity input focus (border #F28C28), error (border #E74C3C); Modal overlay (bg rgba(0,0,0,0.2)), Spinner animates on loading"
       },
       "files": [
         {
-          "path": "frontend/src/components/ui/PlantChart.tsx",
+          "path": "frontend/src/pages/CartPage.tsx",
           "action": "create",
-          "purpose": "Bar chart for plant volumes"
+          "purpose": "Shopping cart with item list, summary, and checkout CTA"
         }
       ],
-      "dependencies": "None",
-      "validation": "Chart renders with correct bar colors, tooltip on hover, spinner on loading, responsive at 768px",
+      "dependencies": "Item 7",
+      "validation": "All specified hex colors present in CSS, all listed components rendered, API-driven cart data visible, modal and button states visually match, responsive at 768px",
       "status": "done",
       "role_id": "frontend_developer",
       "role_category": "frontend",
-      "wave": 4
+      "wave": 5
     },
     {
       "item_number": 12,
-      "title": "OrdersTable",
-      "goal": "Implements the \"OrdersTable\" component for paginated dispatches.",
+      "title": "frontend/src/styles/tokens.ts",
+      "goal": "Centralize all design tokens for colors, typography, spacing, border radius, and shadows as specified in the global design context.",
       "design_specs": {
-        "table_background": "`colors.surface` (#FFFFFF), `colors.darkSurface` (#2D2D44)",
-        "header": "14px, 600, 1.4",
-        "row_text": "`colors.textPrimary` (#1A1A2E), `colors.darkTextPrimary` (#EAEAEA)",
-        "secondary_text": "`colors.textSecondary` (#6B7280), `colors.darkTextSecondary` (#A0A0B0)",
-        "row_alternate": "`colors.background` (#F4F6F9), `colors.darkBackground` (#1A1A2E)",
-        "border": "`colors.border` (#D1D5DB), `colors.darkBorder` (#3D3D5C)",
-        "delivered": "`colors.badgeDelivered` (#27AE60)",
-        "in_transit": "`colors.badgeInTransit` (#3498DB)",
-        "pending": "`colors.badgePending` (#F39C12)",
-        "cancelled": "`colors.badgeCancelled` (#E74C3C)",
-        "body": "14px, 400, 1.5",
-        "badge": "12px, 500, 1.4",
-        "cell_padding": "`spacing.sm` (8px) vertical, `spacing.md` (16px) horizontal",
-        "row_gap": "0",
-        "table,_6_columns": "Planta, Centro Destino, Cantidad, Estado (badge), Fecha Despacho, Fecha Entrega",
-        "pagination": "10 rows per page",
-        "status_badge": "pill, background per status, text white",
-        "loading": "spinner overlay",
-        "empty": "\"Sin resultados\"",
-        "delivery_date_null": "show \"\u2014\""
+        "colors": "primary #F28C28, primary_light #FDBF60, primary_dark #C76A1A, secondary #4A90D9, secondary_light #7AB3E8, secondary_dark #2C6FAC, accent #E85D75, neutral_white #FFFFFF, neutral_light #F5F5F5, neutral_medium #E0E0E0, neutral_dark #333333, neutral_black #1A1A1A, success #27AE60, warning #F39C12, error #E74C3C, info #3498DB",
+        "typography": "font_family 'Inter', sans-serif; h1 32px/700/1.2, h2 24px/600/1.3, h3 20px/600/1.4, h4 18px/500/1.4, body large 16px/400/1.5, body regular 14px/400/1.5, body small 12px/400/1.4, button 16px/600/1.2, caption 11px/400/1.3",
+        "spacing": "xs 4px, sm 8px, md 16px, lg 24px, xl 32px, xxl 48px, section 64px",
+        "border_radius": "sm 4px, md 8px, lg 12px, xl 16px, full 9999px",
+        "shadows": "card \"0 2px 8px rgba(0,0,0,0.08)\", elevated \"0 4px 16px rgba(0,0,0,0.12)\", modal \"0 8px 32px rgba(0,0,0,0.2)\"",
+        "icon/image_style": "2px linear icons, rounded corners, product images on white/transparent with soft shadow, cat paw icons as decor",
+        "motion": "transitions 0.2s\u20130.3s for hover/focus, subtle spinner animation, button microinteractions (color/elevation)"
       },
       "files": [
         {
-          "path": "frontend/src/components/ui/OrdersTable.tsx",
+          "path": "frontend/src/styles/tokens.ts",
           "action": "create",
-          "purpose": "Paginated table for dispatches"
+          "purpose": "Exports all design tokens as JS/TS objects for use in styled components or CSS-in-JS"
         }
       ],
       "dependencies": "None",
-      "validation": "Table renders with correct columns, badge colors, alternate rows, pagination, loading/empty states",
+      "validation": "All tokens present with exact values, no missing or extra tokens, file imported in at least one page/component",
       "status": "done",
       "role_id": "frontend_developer",
       "role_category": "frontend",
@@ -428,32 +401,22 @@
     },
     {
       "item_number": 13,
-      "title": "OrderForm",
-      "goal": "Implements the \"OrderForm\" component for creating a dispatch order.",
+      "title": "frontend/src/hooks/useProducts.ts",
+      "goal": "Provide a hook for fetching product lists and details from `/api/products` and `/api/products/:id`.",
       "design_specs": {
-        "form_background": "`colors.surface` (#FFFFFF), `colors.darkSurface` (#2D2D44)",
-        "input_border": "`colors.border` (#D1D5DB), `colors.darkBorder` (#3D3D5C)",
-        "input_text": "`colors.textPrimary` (#1A1A2E), `colors.darkTextPrimary` (#EAEAEA)",
-        "label": "14px, 500, 1.4",
-        "cta_button": "`colors.primary` (#1E3A5F), hover `colors.primaryLight` (#2B5A8C), text white",
-        "error": "error message below field",
-        "input": "14px, 400, 1.5",
-        "button": "14px, 600, 1.4",
-        "field_gap": "`spacing.md` (16px)",
-        "form_padding": "`spacing.lg` (24px)",
-        "button_margin-top": "`spacing.lg` (24px)",
-        "loading": "spinner on button",
-        "success/error": "Toast notification"
+        "exposes": "`{ data, loading, error }` for product list and single product fetch",
+        "uses": "fetches from `/api/products` and `/api/products/:id` (relative paths only)",
+        "handles": "loading state (Spinner / Loader), error state (error message)"
       },
       "files": [
         {
-          "path": "frontend/src/components/ui/OrderForm.tsx",
+          "path": "frontend/src/hooks/useProducts.ts",
           "action": "create",
-          "purpose": "Form for creating dispatch order"
+          "purpose": "React hook for product API"
         }
       ],
       "dependencies": "None",
-      "validation": "All fields visible, validation errors shown, button loading state, toast on submit, correct colors",
+      "validation": "Returns correct data shape, loading and error states observable, no absolute URLs, used in at least one page",
       "status": "done",
       "role_id": "frontend_developer",
       "role_category": "frontend",
@@ -461,28 +424,22 @@
     },
     {
       "item_number": 14,
-      "title": "Toast",
-      "goal": "Implements the \"Toast\" notification component.",
+      "title": "frontend/src/hooks/useOrders.ts",
+      "goal": "Provide a hook for fetching and creating orders from `/api/orders` and `/api/orders/:id`.",
       "design_specs": {
-        "success": "`colors.success` (#27AE60)",
-        "error": "`colors.error` (#E74C3C)",
-        "info": "`colors.info` (#3498DB)",
-        "background": "`colors.surface` (#FFFFFF), `colors.darkSurface` (#2D2D44)",
-        "text": "`colors.textPrimary` (#1A1A2E), `colors.darkTextPrimary` (#EAEAEA)",
-        "message": "14px, 500, 1.4",
-        "padding": "`spacing.md` (16px)",
-        "margin-bottom": "`spacing.md` (16px)",
-        "min-width": "240px, border-radius: `radii.md` (8px)"
+        "exposes": "`{ data, loading, error }` for order list and single order fetch, and order creation",
+        "uses": "fetches from `/api/orders` and `/api/orders/:id` (relative paths only)",
+        "handles": "loading state (Spinner / Loader), error state (error message)"
       },
       "files": [
         {
-          "path": "frontend/src/components/ui/Toast.tsx",
+          "path": "frontend/src/hooks/useOrders.ts",
           "action": "create",
-          "purpose": "Toast notification for success/error/info"
+          "purpose": "React hook for order API"
         }
       ],
       "dependencies": "None",
-      "validation": "Toast appears with correct color/icon, auto-dismisses, fade animation, correct stacking",
+      "validation": "Returns correct data shape, loading and error states observable, no absolute URLs, used in at least one page",
       "status": "done",
       "role_id": "frontend_developer",
       "role_category": "frontend",
@@ -490,28 +447,22 @@
     },
     {
       "item_number": 15,
-      "title": "ErrorBanner",
-      "goal": "Implements the \"ErrorBanner\" component for API errors.",
+      "title": "frontend/src/hooks/useAuth.ts",
+      "goal": "Provide a hook for authentication (login, register, refresh, me) using `/api/auth/*` endpoints.",
       "design_specs": {
-        "banner_background": "`colors.error` (#E74C3C)",
-        "text": "`colors.surface` (#FFFFFF)",
-        "retry_button": "`colors.surface` (#FFFFFF), text `colors.error` (#E74C3C), border `colors.surface` (#FFFFFF)",
-        "message": "14px, 500, 1.4",
-        "button": "14px, 600, 1.4",
-        "padding": "`spacing.md` (16px)",
-        "button_margin-left": "`spacing.md` (16px)",
-        "flex_row,_align-items": "center, full width",
-        "fade-in_300ms,_button_hover": "background `colors.surface` (#FFFFFF), text `colors.error` (#E74C3C)"
+        "exposes": "`{ user, loading, error, login(), register(), refresh(), logout() }`",
+        "uses": "fetches from `/api/auth/login`, `/api/auth/register`, `/api/auth/refresh`, `/api/auth/me` (relative paths only)",
+        "handles": "loading state (Spinner / Loader), error state (error message)"
       },
       "files": [
         {
-          "path": "frontend/src/components/ui/ErrorBanner.tsx",
+          "path": "frontend/src/hooks/useAuth.ts",
           "action": "create",
-          "purpose": "Banner for API errors with retry"
+          "purpose": "React hook for authentication API"
         }
       ],
       "dependencies": "None",
-      "validation": "Banner visible on error, retry button works, correct colors, fade-in animation",
+      "validation": "Returns correct data shape, loading and error states observable, no absolute URLs, used in at least one page",
       "status": "done",
       "role_id": "frontend_developer",
       "role_category": "frontend",
@@ -519,203 +470,6 @@
     },
     {
       "item_number": 16,
-      "title": "PrimaryNav",
-      "goal": "Implements the \"PrimaryNav\" component (header-only navigation).",
-      "design_specs": {
-        "background": "`colors.primary` (#1E3A5F), `colors.darkSurface` (#2D2D44)",
-        "text": "`colors.surface` (#FFFFFF), `colors.darkTextPrimary` (#EAEAEA)",
-        "nav_text": "18px, 600, 1.4",
-        "height": "64px",
-        "padding": "`spacing.xl` (32px)",
-        "flex_row,_align-items": "center"
-      },
-      "files": [
-        {
-          "path": "frontend/src/components/ui/PrimaryNav.tsx",
-          "action": "create",
-          "purpose": "Navigation bar (header only)"
-        }
-      ],
-      "dependencies": "None",
-      "validation": "Renders as header, correct colors, correct height and padding",
-      "status": "done",
-      "role_id": "frontend_developer",
-      "role_category": "frontend",
-      "wave": 4
-    },
-    {
-      "item_number": 17,
-      "title": "CTAButton",
-      "goal": "Implements the \"CTAButton\" primary action button.",
-      "design_specs": {
-        "background": "`colors.primary` (#1E3A5F)",
-        "hover": "background transition 300ms",
-        "text": "`colors.surface` (#FFFFFF)",
-        "disabled": "pointer-events none, opacity 0.5",
-        "button": "14px, 600, 1.4",
-        "padding": "`spacing.sm` (8px) vertical, `spacing.lg` (24px) horizontal",
-        "border-radius": "`radii.full` (9999px)",
-        "inline-flex,_align-items": "center, justify-content: center",
-        "focus": "outline 2px `colors.primaryLight` (#2B5A8C)"
-      },
-      "files": [
-        {
-          "path": "frontend/src/components/ui/CTAButton.tsx",
-          "action": "create",
-          "purpose": "Primary action button"
-        }
-      ],
-      "dependencies": "None",
-      "validation": "Button renders with correct colors, hover/focus/disabled states, correct padding and border-radius",
-      "status": "done",
-      "role_id": "frontend_developer",
-      "role_category": "frontend",
-      "wave": 4
-    },
-    {
-      "item_number": 18,
-      "title": "Card",
-      "goal": "Implements the \"Card\" generic container component.",
-      "design_specs": {
-        "background": "`colors.surface` (#FFFFFF), `colors.darkSurface` (#2D2D44)",
-        "border": "`colors.border` (#D1D5DB), `colors.darkBorder` (#3D3D5C)",
-        "shadow": "`shadows.card` (0 2px 8px rgba(0,0,0,0.08))",
-        "padding": "`spacing.md` (16px)",
-        "border-radius": "`radii.md` (8px)",
-        "hover": "shadow `shadows.cardHover` (0 4px 16px rgba(0,0,0,0.12))"
-      },
-      "files": [
-        {
-          "path": "frontend/src/components/ui/Card.tsx",
-          "action": "create",
-          "purpose": "Generic card container"
-        }
-      ],
-      "dependencies": "None",
-      "validation": "Card renders with correct background, border, shadow, padding, hover shadow",
-      "status": "done",
-      "role_id": "frontend_developer",
-      "role_category": "frontend",
-      "wave": 4
-    },
-    {
-      "item_number": 19,
-      "title": "Design Tokens File",
-      "goal": "Implements the design tokens as a TypeScript file for use in all components.",
-      "design_specs": {
-        "colors": "All from design tokens above",
-        "typography": "All from design tokens above",
-        "spacing": "All from design tokens above",
-        "radii": "All from design tokens above",
-        "shadows": "All from design tokens above",
-        "chart": "All from design tokens above",
-        "motion": "All from design tokens above",
-        "icon": "Lucide React, 20px, color inherit"
-      },
-      "files": [
-        {
-          "path": "frontend/src/styles/tokens.ts",
-          "action": "create",
-          "purpose": "Design tokens for colors, typography, spacing, radii, shadows, chart, motion"
-        }
-      ],
-      "dependencies": "None",
-      "validation": "All tokens present, correct values, importable in other files",
-      "status": "done",
-      "role_id": "frontend_developer",
-      "role_category": "frontend",
-      "wave": 4
-    },
-    {
-      "item_number": 20,
-      "title": "useDispatches Hook",
-      "goal": "Implements a React hook for fetching and managing dispatches from the API.",
-      "design_specs": {
-        "exposes": "{ data, loading, error }, supports filters (status, plantId, distributionCenterId)",
-        "uses": "fetch('/api/dispatch?status=...&plantId=...&distributionCenterId=...')"
-      },
-      "files": [
-        {
-          "path": "frontend/src/hooks/useDispatches.ts",
-          "action": "create",
-          "purpose": "Hook for fetching dispatches"
-        }
-      ],
-      "dependencies": "None",
-      "validation": "Returns correct data, loading, error; supports filter params; no direct fetch in components",
-      "status": "done",
-      "role_id": "frontend_developer",
-      "role_category": "frontend",
-      "wave": 4
-    },
-    {
-      "item_number": 21,
-      "title": "useCreateDispatch Hook",
-      "goal": "Implements a React hook for creating a new dispatch via API.",
-      "design_specs": {
-        "exposes": "{ mutate, loading, error }",
-        "uses": "fetch('/api/dispatch', { method: 'POST', ... })"
-      },
-      "files": [
-        {
-          "path": "frontend/src/hooks/useCreateDispatch.ts",
-          "action": "create",
-          "purpose": "Hook for creating dispatch"
-        }
-      ],
-      "dependencies": "None",
-      "validation": "mutate triggers POST, loading/error states, no direct fetch in components",
-      "status": "done",
-      "role_id": "frontend_developer",
-      "role_category": "frontend",
-      "wave": 4
-    },
-    {
-      "item_number": 22,
-      "title": "useUpdateDispatchStatus Hook",
-      "goal": "Implements a React hook for updating dispatch status via API.",
-      "design_specs": {
-        "exposes": "{ mutate, loading, error }",
-        "uses": "fetch('/api/dispatch/:id/status', { method: 'PATCH', ... })"
-      },
-      "files": [
-        {
-          "path": "frontend/src/hooks/useUpdateDispatchStatus.ts",
-          "action": "create",
-          "purpose": "Hook for updating dispatch status"
-        }
-      ],
-      "dependencies": "None",
-      "validation": "mutate triggers PATCH, loading/error states, no direct fetch in components",
-      "status": "done",
-      "role_id": "frontend_developer",
-      "role_category": "frontend",
-      "wave": 4
-    },
-    {
-      "item_number": 23,
-      "title": "useDeleteDispatch Hook",
-      "goal": "Implements a React hook for deleting a dispatch via API.",
-      "design_specs": {
-        "exposes": "{ mutate, loading, error }",
-        "uses": "fetch('/api/dispatch/:id', { method: 'DELETE' })"
-      },
-      "files": [
-        {
-          "path": "frontend/src/hooks/useDeleteDispatch.ts",
-          "action": "create",
-          "purpose": "Hook for deleting dispatch"
-        }
-      ],
-      "dependencies": "None",
-      "validation": "mutate triggers DELETE, loading/error states, no direct fetch in components",
-      "status": "done",
-      "role_id": "frontend_developer",
-      "role_category": "frontend",
-      "wave": 4
-    },
-    {
-      "item_number": 24,
       "title": "Frontend E2E Tests \u2014 Full-Stack Integration",
       "goal": "Write Playwright E2E tests that drive real browser UI events and verify correct backend API responses. RULES: (1) Each test navigates to a real page. (2) Uses page.click()/fill()/select() to trigger actions. (3) Uses page.waitForResponse() to intercept and assert the correct API endpoint was called with correct payload. (4) Asserts backend response data appears in DOM. NO MOCKS \u2014 tests hit the real backend via docker-compose. API contract at `docs/uiux/api-contract.yaml`.",
       "design_specs": {
@@ -726,9 +480,19 @@
       },
       "files": [
         {
-          "path": "frontend/e2e/smoke.spec.ts",
+          "path": "frontend/e2e/auth.spec.ts",
           "action": "create",
-          "purpose": "Smoke tests: homepage loads (200), navigation links work, backend health endpoint responds, no console errors on load."
+          "purpose": "Register new user \u2192 intercept POST /api/auth/register, assert 201. Login \u2192 intercept POST /api/auth/login, assert token stored in localStorage. Access protected route \u2192 assert Authorization header sent. Logout \u2192 assert localStorage cleared."
+        },
+        {
+          "path": "frontend/e2e/products.spec.ts",
+          "action": "create",
+          "purpose": "Load product list \u2192 waitForResponse(/\\/api\\/products/), assert items rendered. Click product card \u2192 waitForResponse(/\\/api\\/products\\/.+/), assert detail shown. Search/filter if UI has it \u2192 assert query params sent."
+        },
+        {
+          "path": "frontend/e2e/checkout.spec.ts",
+          "action": "create",
+          "purpose": "Full checkout flow: add item \u2192 go to cart \u2192 click checkout \u2192 waitForResponse(/\\/api\\/orders/), assert POST body has cart items. Order history \u2192 waitForResponse GET /api/orders, assert list rendered. Order detail \u2192 assert GET /api/orders/:id data shown."
         },
         {
           "path": "frontend/playwright.config.ts",
@@ -736,7 +500,7 @@
           "purpose": "Playwright config: baseURL='http://localhost:3000', testDir='./e2e', timeout=30000. Reference docs/uiux/api-contract.yaml for endpoint paths. No webServer block \u2014 assume docker-compose up is run externally."
         }
       ],
-      "dependencies": "Item 23",
+      "dependencies": "Item 15",
       "validation": "playwright.config.ts exists with baseURL. Each spec file imports from @playwright/test only \u2014 no MSW, no fetch-mock. Tests use page.waitForResponse() to assert API calls \u2014 not just page.goto(). No hardcoded http://localhost:PORT in test assertions \u2014 use baseURL. Auth spec asserts localStorage contains token after login.",
       "status": "done",
       "role_id": "frontend_developer",
@@ -745,55 +509,55 @@
     },
     {
       "item_number": "fix-integration-1",
-      "title": "Integration fix: Contract defines POST /api/dispatch but no matching backend route found",
-      "goal": "Contract defines POST /api/dispatch but no matching backend route found",
+      "title": "Integration fix 1: Contract defines POST /api/auth/login but no matching backend route fo",
+      "goal": "Contract defines POST /api/auth/login but no matching backend route found\n\nIMPORTANT: After fixing, verify the fix is correct by re-reading the affected files and confirming the issue is fully resolved \u2014 do not leave partial fixes.",
       "files": [],
       "dependencies": "All prior items",
-      "validation": "API contract, backend routes, and frontend calls are consistent",
+      "validation": "All frontend API calls use consistent prefix pattern; relative imports resolve correctly; npm run build exits with code 0.",
       "wave": 8,
       "status": "done",
       "is_integration_fix": true
     },
     {
       "item_number": "fix-integration-2",
-      "title": "Integration fix: Contract defines GET /api/dispatch but no matching backend route found",
-      "goal": "Contract defines GET /api/dispatch but no matching backend route found",
+      "title": "Integration fix 2: Contract defines GET /api/auth/me but no matching backend route found",
+      "goal": "Contract defines GET /api/auth/me but no matching backend route found\n\nIMPORTANT: After fixing, verify the fix is correct by re-reading the affected files and confirming the issue is fully resolved \u2014 do not leave partial fixes.",
       "files": [],
       "dependencies": "All prior items",
-      "validation": "API contract, backend routes, and frontend calls are consistent",
+      "validation": "All frontend API calls use consistent prefix pattern; relative imports resolve correctly; npm run build exits with code 0.",
       "wave": 8,
       "status": "done",
       "is_integration_fix": true
     },
     {
       "item_number": "fix-integration-3",
-      "title": "Integration fix: Contract defines GET /api/dispatch/{id} but no matching backend route found",
-      "goal": "Contract defines GET /api/dispatch/{id} but no matching backend route found",
+      "title": "Integration fix 3: Contract defines POST /api/auth/refresh but no matching backend route ",
+      "goal": "Contract defines POST /api/auth/refresh but no matching backend route found\n\nIMPORTANT: After fixing, verify the fix is correct by re-reading the affected files and confirming the issue is fully resolved \u2014 do not leave partial fixes.",
       "files": [],
       "dependencies": "All prior items",
-      "validation": "API contract, backend routes, and frontend calls are consistent",
+      "validation": "All frontend API calls use consistent prefix pattern; relative imports resolve correctly; npm run build exits with code 0.",
       "wave": 8,
       "status": "done",
       "is_integration_fix": true
     },
     {
       "item_number": "fix-integration-4",
-      "title": "Integration fix: Contract defines DELETE /api/dispatch/{id} but no matching backend route found",
-      "goal": "Contract defines DELETE /api/dispatch/{id} but no matching backend route found",
+      "title": "Integration fix 4: Contract defines POST /api/auth/register but no matching backend route",
+      "goal": "Contract defines POST /api/auth/register but no matching backend route found\n\nIMPORTANT: After fixing, verify the fix is correct by re-reading the affected files and confirming the issue is fully resolved \u2014 do not leave partial fixes.",
       "files": [],
       "dependencies": "All prior items",
-      "validation": "API contract, backend routes, and frontend calls are consistent",
+      "validation": "All frontend API calls use consistent prefix pattern; relative imports resolve correctly; npm run build exits with code 0.",
       "wave": 8,
       "status": "done",
       "is_integration_fix": true
     },
     {
       "item_number": "fix-integration-5",
-      "title": "Integration fix: Contract defines PATCH /api/dispatch/{id}/status but no matching backend route f",
-      "goal": "Contract defines PATCH /api/dispatch/{id}/status but no matching backend route found",
+      "title": "Integration fix 5: Contract defines GET /api/orders but no matching backend route found",
+      "goal": "Contract defines GET /api/orders but no matching backend route found\n\nIMPORTANT: After fixing, verify the fix is correct by re-reading the affected files and confirming the issue is fully resolved \u2014 do not leave partial fixes.",
       "files": [],
       "dependencies": "All prior items",
-      "validation": "API contract, backend routes, and frontend calls are consistent",
+      "validation": "All frontend API calls use consistent prefix pattern; relative imports resolve correctly; npm run build exits with code 0.",
       "wave": 8,
       "status": "done",
       "is_integration_fix": true
@@ -801,6 +565,6 @@
   ],
   "qa_sync_completed": true,
   "integration_check_done": true,
-  "thread_id": "run-ed39bce1-8861-4eec-9bc2-a323162dd999",
-  "timestamp": 1779721617.2483804
+  "thread_id": "run-3682aabb-39b6-4afb-a7c4-37b3bd51d0c8",
+  "timestamp": 1779815709.369705
 }

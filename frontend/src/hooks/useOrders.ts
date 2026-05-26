@@ -1,120 +1,106 @@
 import { useState, useCallback } from 'react';
-import { Order, CreateOrderInput } from '../types/order';
+import { api } from '../lib/api';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:23001';
+export interface OrderItem {
+  productId: string;
+  quantity: number;
+  price: number;
+}
+
+export interface Order {
+  id: string;
+  userId: string;
+  items: OrderItem[];
+  total: number;
+  status: 'pending' | 'paid' | 'shipped' | 'cancelled';
+  createdAt: string;
+  updatedAt: string;
+}
 
 interface UseOrdersReturn {
   orders: Order[];
   loading: boolean;
   error: string | null;
-  fetchOrders: () => Promise<Order[] | null>;
-  fetchOrderById: (id: number) => Promise<Order | null>;
-  createOrder: (data: CreateOrderInput) => Promise<Order | null>;
+  fetchOrders: () => Promise<void>;
+  fetchOrder: (id: string) => Promise<Order>;
+  createOrder: (data: { items: Array<{ productId: string; quantity: number }> }) => Promise<Order>;
+  updateOrderStatus: (id: string, status: Order['status']) => Promise<Order>;
 }
 
 export function useOrders(): UseOrdersReturn {
   const [orders, setOrders] = useState<Order[]>([]);
-  const [loading, setLoading] = useState<boolean>(false);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const getAuthHeaders = useCallback(() => {
-    const token = localStorage.getItem('token');
-    return {
-      'Content-Type': 'application/json',
-      ...(token && { Authorization: `Bearer ${token}` }),
-    };
+  const fetchOrders = useCallback(async (): Promise<void> => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await api.get<Order[]>('/api/orders');
+      setOrders(response);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to fetch orders';
+      setError(message);
+      setOrders([]);
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
-  const fetchOrders = useCallback(async (): Promise<Order[] | null> => {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      setError('No authentication token found');
-      return null;
-    }
+  const fetchOrder = useCallback(async (id: string): Promise<Order> => {
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch(`${API_BASE_URL}/api/orders`, {
-        method: 'GET',
-        headers: getAuthHeaders(),
-      });
-      if (!response.ok) {
-        throw new Error(`Failed to fetch orders: ${response.statusText}`);
-      }
-      const data: Order[] = await response.json();
-      setOrders(data);
-      return data;
+      const response = await api.get<Order>(`/api/orders/${id}`);
+      return response;
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Unknown error fetching orders';
+      const message = err instanceof Error ? err.message : 'Failed to fetch order';
       setError(message);
-      return null;
+      throw err;
     } finally {
       setLoading(false);
     }
-  }, [getAuthHeaders]);
+  }, []);
 
-  const fetchOrderById = useCallback(async (id: number): Promise<Order | null> => {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      setError('No authentication token found');
-      return null;
-    }
+  const createOrder = useCallback(async (data: { items: Array<{ productId: string; quantity: number }> }): Promise<Order> => {
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch(`${API_BASE_URL}/api/orders/${id}`, {
-        method: 'GET',
-        headers: getAuthHeaders(),
-      });
-      if (!response.ok) {
-        throw new Error(`Failed to fetch order: ${response.statusText}`);
-      }
-      const data: Order = await response.json();
-      return data;
+      const response = await api.post<Order>('/api/orders', data);
+      setOrders(prev => [...prev, response]);
+      return response;
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Unknown error fetching order';
+      const message = err instanceof Error ? err.message : 'Failed to create order';
       setError(message);
-      return null;
+      throw err;
     } finally {
       setLoading(false);
     }
-  }, [getAuthHeaders]);
+  }, []);
 
-  const createOrder = useCallback(async (data: CreateOrderInput): Promise<Order | null> => {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      setError('No authentication token found');
-      return null;
-    }
+  const updateOrderStatus = useCallback(async (id: string, status: Order['status']): Promise<Order> => {
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch(`${API_BASE_URL}/api/orders`, {
-        method: 'POST',
-        headers: getAuthHeaders(),
-        body: JSON.stringify(data),
-      });
-      if (!response.ok) {
-        throw new Error(`Failed to create order: ${response.statusText}`);
-      }
-      const newOrder: Order = await response.json();
-      setOrders((prev) => [...prev, newOrder]);
-      return newOrder;
+      const response = await api.put<Order>(`/api/orders/${id}/status`, { status });
+      setOrders(prev => prev.map(o => o.id === id ? response : o));
+      return response;
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Unknown error creating order';
+      const message = err instanceof Error ? err.message : 'Failed to update order status';
       setError(message);
-      return null;
+      throw err;
     } finally {
       setLoading(false);
     }
-  }, [getAuthHeaders]);
+  }, []);
 
   return {
     orders,
     loading,
     error,
     fetchOrders,
-    fetchOrderById,
+    fetchOrder,
     createOrder,
+    updateOrderStatus,
   };
 }
