@@ -1,344 +1,638 @@
-import { useState, useEffect, useMemo } from 'react';
-import { Package, Truck, CheckCircle, Clock, AlertCircle, X } from 'lucide-react';
+import React, { useMemo } from 'react';
+import { Link } from 'react-router-dom';
 import { tokens } from '../styles/tokens';
-import { useDispatches } from '../hooks/useDispatches';
-import Header from '../components/ui/Header';
-import FilterBar from '../components/ui/FilterBar';
-import KpiCard from '../components/ui/KpiCard';
-import TrendChart, { TrendDataPoint } from '../components/ui/TrendChart';
-import PlantChart, { PlantChartDataPoint } from '../components/ui/PlantChart';
-import OrdersTable from '../components/ui/OrdersTable';
-import OrderForm from '../components/ui/OrderForm';
+import { useNews } from '../hooks/useNews';
+import { useAuth } from '../contexts/AuthContext';
 
-interface ToastState {
-  show: boolean;
-  type: 'success' | 'error';
-  message: string;
+interface MetricCardProps {
+  label: string;
+  value: number | string;
+  color?: string;
+  icon?: string;
 }
 
-export default function DashboardPrincipalPage() {
-  const [isDark, setIsDark] = useState(() => {
-    if (typeof window !== 'undefined') {
-      return localStorage.getItem('theme') === 'dark';
-    }
-    return false;
-  });
-  const [plantFilter, setPlantFilter] = useState('');
-  const [statusFilter, setStatusFilter] = useState('');
-  const [toast, setToast] = useState<ToastState>({ show: false, type: 'success', message: '' });
-  const [showOrderForm, setShowOrderForm] = useState(false);
-
-  const { dispatches, loading, error, updateDispatchStatus, deleteDispatch, refresh } = useDispatches({
-    status: statusFilter || undefined,
-    plantId: plantFilter || undefined,
-  });
-
-  useEffect(() => {
-    const handleThemeChange = () => {
-      setIsDark(document.documentElement.getAttribute('data-theme') === 'dark');
-    };
-    const observer = new MutationObserver(handleThemeChange);
-    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
-    return () => observer.disconnect();
-  }, []);
-
-  const showToast = (type: 'success' | 'error', message: string) => {
-    setToast({ show: true, type, message });
-    setTimeout(() => setToast((prev) => ({ ...prev, show: false })), 5000);
-  };
-
-  const kpis = useMemo(() => {
-    const total = dispatches.length;
-    const inTransit = dispatches.filter((d) => d.status === 'in_transit').length;
-    const delivered = dispatches.filter((d) => d.status === 'delivered').length;
-    const pending = dispatches.filter((d) => d.status === 'pending').length;
-
-    return [
-      { label: 'Total Ordenes', value: total, icon: Package, iconColor: tokens.colors.primary },
-      { label: 'En Tránsito', value: inTransit, icon: Truck, iconColor: tokens.colors.badgeInTransit },
-      { label: 'Entregadas', value: delivered, icon: CheckCircle, iconColor: tokens.colors.badgeDelivered },
-      { label: 'Pendientes', value: pending, icon: Clock, iconColor: tokens.colors.badgePending },
-    ];
-  }, [dispatches]);
-
-  const trendData: TrendDataPoint[] = useMemo(() => {
-    const months = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun'];
-    const counts = [12, 19, 15, 22, 18, 24];
-    return months.map((month, i) => ({ month, value: counts[i] }));
-  }, []);
-
-  const plantChartData: PlantChartDataPoint[] = useMemo(() => {
-    const plantCounts: Record<string, number> = {};
-    dispatches.forEach((d) => {
-      plantCounts[d.plantId] = (plantCounts[d.plantId] || 0) + 1;
-    });
-
-    const plantNames: Record<string, string> = {
-      'plant-1': 'Planta Norte',
-      'plant-2': 'Planta Sur',
-      'plant-3': 'Planta Este',
-      'plant-4': 'Planta Oeste',
-    };
-
-    return Object.entries(plantCounts).map(([plantId, count]) => ({
-      plantId,
-      plantName: plantNames[plantId] || plantId,
-      value: count,
-    }));
-  }, [dispatches]);
-
-  const handleCreateSuccess = () => {
-    showToast('success', 'Orden creada exitosamente');
-    setShowOrderForm(false);
-  };
-
-  const handleCreateError = (errorMsg: string) => {
-    showToast('error', errorMsg);
-  };
-
-  const containerStyle: React.CSSProperties = {
-    minHeight: '100vh',
-    backgroundColor: isDark ? tokens.colors.darkBackground : tokens.colors.background,
-    transition: 'background-color 300ms ease',
-  };
-
-  const mainContentStyle: React.CSSProperties = {
-    padding: tokens.spacing.xl,
-    maxWidth: '1400px',
-    margin: '0 auto',
-  };
-
-  const pageTitleStyle: React.CSSProperties = {
-    fontFamily: tokens.typography.fontFamily,
-    fontSize: tokens.typography.headings.h1.size,
-    fontWeight: tokens.typography.headings.h1.weight,
-    lineHeight: tokens.typography.headings.h1.lineHeight,
-    color: isDark ? tokens.colors.darkTextPrimary : tokens.colors.textPrimary,
-    marginBottom: tokens.spacing.lg,
-  };
-
-  const kpiGridStyle: React.CSSProperties = {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(4, 1fr)',
-    gap: tokens.spacing.md,
-    marginBottom: tokens.spacing.lg,
-  };
-
-  const chartsGridStyle: React.CSSProperties = {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(2, 1fr)',
-    gap: tokens.spacing.lg,
-    marginBottom: tokens.spacing.lg,
-  };
-
-  const sectionStyle: React.CSSProperties = {
-    marginBottom: tokens.spacing.lg,
-  };
-
-  const sectionTitleStyle: React.CSSProperties = {
-    fontFamily: tokens.typography.fontFamily,
-    fontSize: tokens.typography.headings.h2.size,
-    fontWeight: tokens.typography.headings.h2.weight,
-    lineHeight: tokens.typography.headings.h2.lineHeight,
-    color: isDark ? tokens.colors.darkTextPrimary : tokens.colors.textPrimary,
-    marginBottom: tokens.spacing.md,
-  };
-
-  const toggleFormButtonStyle: React.CSSProperties = {
-    display: 'flex',
-    alignItems: 'center',
-    gap: tokens.spacing.sm,
-    backgroundColor: tokens.colors.accent,
-    color: '#FFFFFF',
-    border: 'none',
-    borderRadius: tokens.radii.md,
-    padding: `${tokens.spacing.sm} ${tokens.spacing.lg}`,
-    fontSize: tokens.typography.body.size,
-    fontWeight: 600,
-    lineHeight: tokens.typography.body.lineHeight,
-    cursor: 'pointer',
-    transition: 'background-color 300ms ease',
-    marginBottom: tokens.spacing.md,
-  };
-
-  const formContainerStyle: React.CSSProperties = {
-    marginBottom: tokens.spacing.lg,
-  };
-
-  const errorBannerStyle: React.CSSProperties = {
-    display: 'flex',
-    alignItems: 'center',
-    width: '100%',
-    padding: tokens.spacing.md,
-    backgroundColor: tokens.colors.error,
-    color: tokens.colors.surface,
-    borderRadius: tokens.radii.md,
-    boxShadow: tokens.shadows.card,
-    marginBottom: tokens.spacing.md,
-    animation: 'fadeIn 300ms ease-out',
-  };
-
-  const toastStyle: React.CSSProperties = {
-    position: 'fixed',
-    bottom: tokens.spacing.lg,
-    right: tokens.spacing.lg,
-    padding: `${tokens.spacing.md} ${tokens.spacing.lg}`,
-    borderRadius: tokens.radii.md,
-    backgroundColor: toast.type === 'success' ? tokens.colors.success : tokens.colors.error,
-    color: '#FFFFFF',
-    fontSize: tokens.typography.body.size,
-    fontWeight: 500,
-    lineHeight: tokens.typography.body.lineHeight,
-    boxShadow: tokens.shadows.dropdown,
-    display: 'flex',
-    alignItems: 'center',
-    gap: tokens.spacing.sm,
-    zIndex: 1000,
-    animation: 'slideIn 300ms ease',
-    maxWidth: '400px',
-  };
-
+function MetricCard({ label, value, color, icon }: MetricCardProps) {
   return (
-    <div style={containerStyle}>
-      <Header />
-
-      <main style={mainContentStyle}>
-        <h1 style={pageTitleStyle}>Dashboard de Distribución</h1>
-
-        {error && (
-          <div style={errorBannerStyle}>
-            <AlertCircle size={20} color={tokens.colors.surface} style={{ marginRight: tokens.spacing.md }} />
-            <span style={{ flex: 1 }}>{error}</span>
-            <button
-              onClick={refresh}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: tokens.spacing.sm,
-                marginLeft: tokens.spacing.md,
-                padding: `${tokens.spacing.sm} ${tokens.spacing.md}`,
-                backgroundColor: tokens.colors.surface,
-                color: tokens.colors.error,
-                border: `1px solid ${tokens.colors.surface}`,
-                borderRadius: tokens.radii.md,
-                fontSize: tokens.typography.body.size,
-                fontWeight: 600,
-                cursor: 'pointer',
-              }}
-            >
-              Reintentar
-            </button>
-          </div>
-        )}
-
-        <div style={sectionStyle}>
-          <FilterBar
-            onPlantChange={setPlantFilter}
-            onStatusChange={setStatusFilter}
-            disabled={loading}
-          />
-        </div>
-
-        <div className="kpi-grid" style={kpiGridStyle}>
-          {kpis.map((kpi, index) => (
-            <KpiCard
-              key={index}
-              label={kpi.label}
-              value={kpi.value}
-              icon={kpi.icon}
-              iconColor={kpi.iconColor}
-              loading={loading}
-            />
-          ))}
-        </div>
-
-        <div className="charts-grid" style={chartsGridStyle}>
-          <div>
-            <h2 style={sectionTitleStyle}>Tendencia de Entregas</h2>
-            <TrendChart data={trendData} loading={loading} />
-          </div>
-          <div>
-            <h2 style={sectionTitleStyle}>Despachos por Planta</h2>
-            <PlantChart data={plantChartData} loading={loading} />
-          </div>
-        </div>
-
-        <div style={sectionStyle}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: tokens.spacing.md }}>
-            <h2 style={sectionTitleStyle}>Órdenes Recientes</h2>
-            <button
-              onClick={() => setShowOrderForm(!showOrderForm)}
-              style={toggleFormButtonStyle}
-            >
-              {showOrderForm ? 'Cancelar' : '+ Nueva Orden'}
-            </button>
-          </div>
-
-          {showOrderForm && (
-            <div style={formContainerStyle}>
-              <OrderForm onSuccess={handleCreateSuccess} onError={handleCreateError} />
-            </div>
-          )}
-
-          <OrdersTable
-            dispatches={dispatches}
-            loading={loading}
-            onStatusChange={(id, status, actualDeliveryDate) =>
-              updateDispatchStatus(id, status, actualDeliveryDate)
-            }
-            onDelete={deleteDispatch}
-          />
-        </div>
-      </main>
-
-      {toast.show && (
-        <div style={toastStyle}>
-          {toast.type === 'success' ? (
-            <CheckCircle size={20} color="#FFFFFF" />
-          ) : (
-            <AlertCircle size={20} color="#FFFFFF" />
-          )}
-          <span>{toast.message}</span>
-          <button
-            onClick={() => setToast((prev) => ({ ...prev, show: false }))}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              backgroundColor: 'transparent',
-              border: 'none',
-              color: '#FFFFFF',
-              cursor: 'pointer',
-              marginLeft: tokens.spacing.sm,
-              padding: tokens.spacing.xs,
-              opacity: 0.8,
-            }}
-          >
-            <X size={16} />
-          </button>
-        </div>
-      )}
-
-      <style>
-        {`
-          @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-10px); }
-            to { opacity: 1; transform: translateY(0); }
-          }
-          @keyframes slideIn {
-            from { transform: translateX(100%); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
-          }
-          @media (max-width: 1024px) {
-            .kpi-grid { grid-template-columns: repeat(2, 1fr) !important; }
-            .charts-grid { grid-template-columns: 1fr !important; }
-          }
-          @media (max-width: 768px) {
-            .kpi-grid { grid-template-columns: 1fr !important; }
-            .charts-grid { grid-template-columns: 1fr !important; }
-          }
-        `}
-      </style>
+    <div style={styles.metricCard}>
+      <div style={styles.metricHeader}>
+        {icon && <span style={styles.metricIcon}>{icon}</span>}
+        <span style={styles.metricLabel}>{label}</span>
+      </div>
+      <div style={{ ...styles.metricValue, color: color || tokens.colors.text_primary }}>
+        {value}
+      </div>
     </div>
   );
 }
+
+interface PriorityBadgeProps {
+  priority: number;
+}
+
+function PriorityBadge({ priority }: PriorityBadgeProps) {
+  const { color, label } = useMemo(() => {
+    switch (priority) {
+      case 4:
+        return { color: tokens.colors.semaphore_red, label: 'CRÍTICO' };
+      case 3:
+        return { color: tokens.colors.warning, label: 'ALTO' };
+      case 2:
+        return { color: tokens.colors.semaphore_yellow, label: 'MEDIO' };
+      default:
+        return { color: tokens.colors.semaphore_green, label: 'BAJO' };
+    }
+  }, [priority]);
+
+  return (
+    <span
+      style={{
+        ...styles.priorityBadge,
+        backgroundColor: color,
+      }}
+    >
+      {label}
+    </span>
+  );
+}
+
+interface NewsCardProps {
+  id: number;
+  title: string;
+  source: string;
+  country: string;
+  publishedAt: string;
+  priority: number;
+  tags: string[];
+}
+
+function NewsCard({ id, title, source, country, publishedAt, priority, tags }: NewsCardProps) {
+  const formattedDate = useMemo(() => {
+    const date = new Date(publishedAt);
+    return date.toLocaleDateString('es-ES', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  }, [publishedAt]);
+
+  return (
+    <Link to={`/detalledenoticia/${id}`} style={styles.newsCardLink}>
+      <div style={styles.newsCard}>
+        <div style={styles.newsCardHeader}>
+          <span style={styles.newsSource}>{source}</span>
+          <PriorityBadge priority={priority} />
+        </div>
+        <h4 style={styles.newsCardTitle}>{title}</h4>
+        <div style={styles.newsCardMeta}>
+          <span style={styles.newsCountry}>{country}</span>
+          <span style={styles.newsDate}>{formattedDate}</span>
+        </div>
+        <div style={styles.newsCardTags}>
+          {tags.slice(0, 3).map((tag, index) => (
+            <span key={index} style={styles.tag}>
+              {tag}
+            </span>
+          ))}
+        </div>
+      </div>
+    </Link>
+  );
+}
+
+interface BarChartProps {
+  data: { label: string; value: number; color: string }[];
+  title: string;
+}
+
+function BarChart({ data, title }: BarChartProps) {
+  const maxValue = useMemo(() => Math.max(...data.map((d) => d.value), 1), [data]);
+
+  return (
+    <div style={styles.chartContainer}>
+      <h3 style={styles.chartTitle}>{title}</h3>
+      <div style={styles.barChart}>
+        {data.map((item, index) => (
+          <div key={index} style={styles.barItem}>
+            <div style={styles.barLabel}>{item.label}</div>
+            <div style={styles.barTrack}>
+              <div
+                style={{
+                  ...styles.barFill,
+                  width: `${(item.value / maxValue) * 100}%`,
+                  backgroundColor: item.color,
+                }}
+              />
+            </div>
+            <div style={styles.barValue}>{item.value}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+export default function DashboardPrincipal() {
+  const { user } = useAuth();
+  const { news, total, loading, error } = useNews({ limit: 100 });
+
+  const metrics = useMemo(() => {
+    const byPriority = { low: 0, medium: 0, high: 0, critical: 0 };
+    const byCountry: Record<string, number> = {};
+
+    news.forEach((item) => {
+      switch (item.priority) {
+        case 1:
+          byPriority.low++;
+          break;
+        case 2:
+          byPriority.medium++;
+          break;
+        case 3:
+          byPriority.high++;
+          break;
+        case 4:
+          byPriority.critical++;
+          break;
+      }
+      byCountry[item.country] = (byCountry[item.country] || 0) + 1;
+    });
+
+    return { byPriority, byCountry };
+  }, [news]);
+
+  const priorityDistribution = useMemo(
+    () => [
+      { label: 'Bajo', value: metrics.byPriority.low, color: tokens.colors.semaphore_green },
+      { label: 'Medio', value: metrics.byPriority.medium, color: tokens.colors.semaphore_yellow },
+      { label: 'Alto', value: metrics.byPriority.high, color: tokens.colors.warning },
+      { label: 'Crítico', value: metrics.byPriority.critical, color: tokens.colors.semaphore_red },
+    ],
+    [metrics]
+  );
+
+  const countryDistribution = useMemo(() => {
+    const countryColors: Record<string, string> = {
+      CL: '#0033A0',
+      AR: '#74ACDF',
+      CO: '#FCD116',
+      BR: '#009C3B',
+      PE: '#D91023',
+      UY: '#FFFFFF',
+    };
+    return Object.entries(metrics.byCountry).map(([code, count]) => ({
+      label: code,
+      value: count,
+      color: countryColors[code] || tokens.colors.info,
+    }));
+  }, [metrics]);
+
+  const criticalNews = useMemo(
+    () => news.filter((item) => item.priority === 4).slice(0, 5),
+    [news]
+  );
+
+  const recentNews = useMemo(() => {
+    const sorted = [...news].sort(
+      (a, b) => new Date(b.published_at).getTime() - new Date(a.published_at).getTime()
+    );
+    return sorted.slice(0, 8);
+  }, [news]);
+
+  if (loading) {
+    return (
+      <div style={styles.container}>
+        <div style={styles.loadingState}>
+          <div style={styles.spinner} />
+          <span>Cargando dashboard...</span>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div style={styles.container}>
+        <div style={styles.errorState}>
+          <span style={styles.errorIcon}>⚠</span>
+          <span>Error al cargar el dashboard: {error}</span>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div style={styles.container}>
+      <header style={styles.header}>
+        <div style={styles.headerContent}>
+          <div>
+            <h1 style={styles.headerTitle}>Daily Pulse</h1>
+            <p style={styles.headerSubtitle}>
+              Bienvenido, {user?.full_name || 'Usuario'}
+            </p>
+          </div>
+          <div style={styles.headerDate}>
+            {new Date().toLocaleDateString('es-ES', {
+              weekday: 'long',
+              day: 'numeric',
+              month: 'long',
+              year: 'numeric',
+            })}
+          </div>
+        </div>
+      </header>
+
+      <main style={styles.main}>
+        <section style={styles.section}>
+          <h2 style={styles.sectionTitle}>Resumen de Noticias</h2>
+          <div style={styles.metricsGrid}>
+            <MetricCard label="Total Noticias" value={total} />
+            <MetricCard
+              label="Críticas"
+              value={metrics.byPriority.critical}
+              color={tokens.colors.semaphore_red}
+            />
+            <MetricCard
+              label="Altas"
+              value={metrics.byPriority.high}
+              color={tokens.colors.warning}
+            />
+            <MetricCard
+              label="Medias"
+              value={metrics.byPriority.medium}
+              color={tokens.colors.semaphore_yellow}
+            />
+            <MetricCard
+              label="Bajas"
+              value={metrics.byPriority.low}
+              color={tokens.colors.semaphore_green}
+            />
+          </div>
+        </section>
+
+        <div style={styles.dashboardGrid}>
+          <section style={styles.section}>
+            <div style={styles.sectionHeader}>
+              <h2 style={styles.sectionTitle}>Distribución por Prioridad</h2>
+            </div>
+            <BarChart data={priorityDistribution} title="" />
+          </section>
+
+          <section style={styles.section}>
+            <div style={styles.sectionHeader}>
+              <h2 style={styles.sectionTitle}>Distribución por País</h2>
+            </div>
+            <BarChart data={countryDistribution} title="" />
+          </section>
+        </div>
+
+        <section style={styles.section}>
+          <div style={styles.sectionHeader}>
+            <h2 style={styles.sectionTitle}>Noticias Críticas</h2>
+            <Link to="/listadenoticias?priority=4" style={styles.viewAllLink}>
+              Ver todas →
+            </Link>
+          </div>
+          {criticalNews.length === 0 ? (
+            <p style={styles.emptyState}>No hay noticias críticas</p>
+          ) : (
+            <div style={styles.newsGrid}>
+              {criticalNews.map((item) => (
+                <NewsCard
+                  key={item.id}
+                  id={item.id}
+                  title={item.title}
+                  source={item.source.name}
+                  country={item.country}
+                  publishedAt={item.published_at}
+                  priority={item.priority}
+                  tags={item.tags}
+                />
+              ))}
+            </div>
+          )}
+        </section>
+
+        <section style={styles.section}>
+          <div style={styles.sectionHeader}>
+            <h2 style={styles.sectionTitle}>Noticias Recientes</h2>
+            <Link to="/listadenoticias" style={styles.viewAllLink}>
+              Ver todas →
+            </Link>
+          </div>
+          {recentNews.length === 0 ? (
+            <p style={styles.emptyState}>No hay noticias recientes</p>
+          ) : (
+            <div style={styles.newsList}>
+              {recentNews.map((item) => (
+                <div key={item.id} style={styles.recentNewsItem}>
+                  <PriorityBadge priority={item.priority} />
+                  <Link to={`/detalledenoticia/${item.id}`} style={styles.recentNewsTitle}>
+                    {item.title}
+                  </Link>
+                  <span style={styles.recentNewsSource}>{item.source.name}</span>
+                  <span style={styles.recentNewsDate}>
+                    {new Date(item.published_at).toLocaleDateString('es-ES', {
+                      day: 'numeric',
+                      month: 'short',
+                    })}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
+      </main>
+    </div>
+  );
+}
+
+const styles: Record<string, React.CSSProperties> = {
+  container: {
+    minHeight: '100vh',
+    backgroundColor: tokens.colors.surface,
+    fontFamily: tokens.typography.font_family,
+  },
+  header: {
+    backgroundColor: tokens.colors.primary,
+    color: tokens.colors.text_on_primary,
+    padding: `${tokens.spacing.lg} ${tokens.spacing.xl}`,
+  },
+  headerContent: {
+    maxWidth: 1440,
+    margin: '0 auto',
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  headerTitle: {
+    fontSize: tokens.typography.headings.h1.size,
+    fontWeight: tokens.typography.headings.h1.weight,
+    lineHeight: tokens.typography.headings.h1.line_height,
+    marginBottom: tokens.spacing.xs,
+  },
+  headerSubtitle: {
+    fontSize: tokens.typography.body.large.size,
+    opacity: 0.9,
+  },
+  headerDate: {
+    fontSize: tokens.typography.body.medium.size,
+    textTransform: 'capitalize',
+  },
+  main: {
+    maxWidth: 1440,
+    margin: '0 auto',
+    padding: tokens.spacing.xl,
+  },
+  section: {
+    marginBottom: tokens.spacing.xl,
+  },
+  sectionHeader: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: tokens.spacing.md,
+  },
+  sectionTitle: {
+    fontSize: tokens.typography.headings.h2.size,
+    fontWeight: tokens.typography.headings.h2.weight,
+    lineHeight: tokens.typography.headings.h2.line_height,
+    color: tokens.colors.text_primary,
+    marginBottom: tokens.spacing.md,
+  },
+  viewAllLink: {
+    color: tokens.colors.primary,
+    textDecoration: 'none',
+    fontSize: tokens.typography.body.medium.size,
+    fontWeight: 500,
+  },
+  metricsGrid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+    gap: tokens.spacing.md,
+  },
+  metricCard: {
+    backgroundColor: tokens.colors.background,
+    borderRadius: tokens.border_radius.md,
+    padding: tokens.spacing.lg,
+    boxShadow: tokens.shadows.card,
+    border: `1px solid ${tokens.colors.border}`,
+  },
+  metricHeader: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: tokens.spacing.sm,
+    marginBottom: tokens.spacing.sm,
+  },
+  metricIcon: {
+    fontSize: tokens.iconography.size_lg,
+  },
+  metricLabel: {
+    fontSize: tokens.typography.label.size,
+    fontWeight: tokens.typography.label.weight,
+    letterSpacing: tokens.typography.label.letter_spacing,
+    textTransform: tokens.typography.label.text_transform,
+    color: tokens.colors.text_secondary,
+  },
+  metricValue: {
+    fontSize: tokens.typography.headings.h1.size,
+    fontWeight: tokens.typography.headings.h1.weight,
+    lineHeight: 1,
+  },
+  dashboardGrid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))',
+    gap: tokens.spacing.lg,
+    marginBottom: tokens.spacing.xl,
+  },
+  chartContainer: {
+    backgroundColor: tokens.colors.background,
+    borderRadius: tokens.border_radius.md,
+    padding: tokens.spacing.lg,
+    boxShadow: tokens.shadows.card,
+    border: `1px solid ${tokens.colors.border}`,
+  },
+  chartTitle: {
+    fontSize: tokens.typography.headings.h4.size,
+    fontWeight: tokens.typography.headings.h4.weight,
+    color: tokens.colors.text_primary,
+    marginBottom: tokens.spacing.md,
+  },
+  barChart: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: tokens.spacing.md,
+  },
+  barItem: {
+    display: 'grid',
+    gridTemplateColumns: '80px 1fr 40px',
+    alignItems: 'center',
+    gap: tokens.spacing.md,
+  },
+  barLabel: {
+    fontSize: tokens.typography.body.small.size,
+    color: tokens.colors.text_secondary,
+    fontWeight: 500,
+  },
+  barTrack: {
+    height: 8,
+    backgroundColor: tokens.colors.secondary_light,
+    borderRadius: tokens.border_radius.full,
+    overflow: 'hidden',
+  },
+  barFill: {
+    height: '100%',
+    borderRadius: tokens.border_radius.full,
+    transition: `width ${tokens.motion.duration_normal}ms ${tokens.motion.easing}`,
+  },
+  barValue: {
+    fontSize: tokens.typography.body.medium.size,
+    fontWeight: 600,
+    color: tokens.colors.text_primary,
+    textAlign: 'right',
+  },
+  newsGrid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
+    gap: tokens.spacing.md,
+  },
+  newsCardLink: {
+    textDecoration: 'none',
+    color: 'inherit',
+  },
+  newsCard: {
+    backgroundColor: tokens.colors.background,
+    borderRadius: tokens.border_radius.md,
+    padding: tokens.spacing.lg,
+    boxShadow: tokens.shadows.card,
+    border: `1px solid ${tokens.colors.border}`,
+    transition: `box-shadow ${tokens.motion.duration_fast}ms ${tokens.motion.easing}`,
+    cursor: 'pointer',
+  },
+  newsCardHeader: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: tokens.spacing.sm,
+  },
+  newsSource: {
+    fontSize: tokens.typography.caption.size,
+    color: tokens.colors.text_secondary,
+    fontWeight: 500,
+  },
+  newsCardTitle: {
+    fontSize: tokens.typography.body.large.size,
+    fontWeight: 500,
+    color: tokens.colors.text_primary,
+    marginBottom: tokens.spacing.sm,
+    lineHeight: tokens.typography.body.large.line_height,
+    display: '-webkit-box',
+    WebkitLineClamp: 2,
+    WebkitBoxOrient: 'vertical',
+    overflow: 'hidden',
+  },
+  newsCardMeta: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: tokens.spacing.sm,
+  },
+  newsCountry: {
+    fontSize: tokens.typography.caption.size,
+    color: tokens.colors.primary,
+    fontWeight: 600,
+  },
+  newsDate: {
+    fontSize: tokens.typography.caption.size,
+    color: tokens.colors.text_secondary,
+  },
+  newsCardTags: {
+    display: 'flex',
+    gap: tokens.spacing.xs,
+    flexWrap: 'wrap',
+  },
+  priorityBadge: {
+    fontSize: tokens.typography.label.size,
+    fontWeight: tokens.typography.label.weight,
+    letterSpacing: tokens.typography.label.letter_spacing,
+    textTransform: tokens.typography.label.text_transform,
+    color: tokens.colors.text_on_primary,
+    padding: `${tokens.spacing.xs} ${tokens.spacing.sm}`,
+    borderRadius: tokens.border_radius.sm,
+  },
+  tag: {
+    fontSize: tokens.typography.caption.size,
+    color: tokens.colors.text_secondary,
+    backgroundColor: tokens.colors.secondary_light,
+    padding: `${tokens.spacing.xs} ${tokens.spacing.sm}`,
+    borderRadius: tokens.border_radius.sm,
+  },
+  newsList: {
+    backgroundColor: tokens.colors.background,
+    borderRadius: tokens.border_radius.md,
+    border: `1px solid ${tokens.colors.border}`,
+    overflow: 'hidden',
+  },
+  recentNewsItem: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: tokens.spacing.md,
+    padding: tokens.spacing.md,
+    borderBottom: `1px solid ${tokens.colors.border}`,
+  },
+  recentNewsTitle: {
+    flex: 1,
+    fontSize: tokens.typography.body.medium.size,
+    color: tokens.colors.text_primary,
+    textDecoration: 'none',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    whiteSpace: 'nowrap',
+  },
+  recentNewsSource: {
+    fontSize: tokens.typography.body.small.size,
+    color: tokens.colors.text_secondary,
+    minWidth: 100,
+  },
+  recentNewsDate: {
+    fontSize: tokens.typography.body.small.size,
+    color: tokens.colors.text_secondary,
+    minWidth: 70,
+    textAlign: 'right',
+  },
+  emptyState: {
+    fontSize: tokens.typography.body.medium.size,
+    color: tokens.colors.text_secondary,
+    textAlign: 'center',
+    padding: tokens.spacing.xl,
+  },
+  loadingState: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: '50vh',
+    gap: tokens.spacing.md,
+    color: tokens.colors.text_secondary,
+  },
+  spinner: {
+    width: 40,
+    height: 40,
+    border: `3px solid ${tokens.colors.border}`,
+    borderTopColor: tokens.colors.primary,
+    borderRadius: '50%',
+    animation: 'spin 1s linear infinite',
+  },
+  errorState: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: '50vh',
+    gap: tokens.spacing.md,
+    color: tokens.colors.danger,
+  },
+  errorIcon: {
+    fontSize: 24,
+  },
+};

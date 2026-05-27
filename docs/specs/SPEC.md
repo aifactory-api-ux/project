@@ -3,146 +3,154 @@
 ## 1. TECHNOLOGY STACK
 
 - **Backend**
-  - Node.js v20.x
-  - NestJS v10.x
-  - TypeScript v5.x
-  - PostgreSQL v15.x
-  - Redis v7.x (for caching and session management)
-  - RabbitMQ v3.x (for asynchronous messaging)
+  - Python 3.11
+  - FastAPI 0.110.0
+  - Uvicorn 0.29.0
+  - SQLAlchemy 2.0.29
+  - Pydantic 2.6.4
+  - psycopg2-binary 2.9.9
+- **Database**
+  - PostgreSQL 15
 - **Frontend**
-  - React v18.x
-  - TypeScript v5.x
-  - Vite v4.x (for frontend build tooling)
-- **Infrastructure & DevOps**
-  - Docker v24.x
-  - docker-compose v2.x
-  - Kubernetes (EKS on AWS)
-  - AWS RDS (PostgreSQL 15)
-  - AWS ElastiCache (Redis)
-  - AWS S3 (object storage for product images)
-  - AWS CloudFront (CDN for static assets)
-- **Testing**
-  - Jest v29.x (backend and frontend unit/integration tests)
-  - React Testing Library v14.x
-- **Linting & Formatting**
-  - ESLint v8.x
-  - Prettier v3.x
+  - React 18.2.0
+  - TypeScript 5.4.2
+  - Vite 5.2.0
+  - Axios 1.6.7
+  - React Router DOM 6.22.3
+- **Infrastructure**
+  - Docker 26.0.0
+  - Docker Compose 2.27.0
+  - AWS ECS (deployment target)
+- **Shared**
+  - Node.js 20.11.1 (for frontend build)
+  - Yarn 4.2.2
 
 ---
 
 ## 2. DATA CONTRACTS
 
-### Backend (NestJS/TypeScript) — DTOs
+### Python (Pydantic Models)
 
-```typescript
-// backend/shared/dto/product.dto.ts
-export interface Product {
-  id: string; // UUID
-  name: string;
-  description: string;
-  price: number; // in cents
-  imageUrl: string;
-  stock: number;
-  category: string;
-  createdAt: string; // ISO8601
-  updatedAt: string; // ISO8601
-}
+```python
+# backend/shared/models.py
 
-// backend/shared/dto/user.dto.ts
-export interface User {
-  id: string; // UUID
-  email: string;
-  passwordHash: string;
-  name: string;
-  role: 'customer' | 'admin';
-  createdAt: string; // ISO8601
-  updatedAt: string; // ISO8601
-}
+from pydantic import BaseModel, Field
+from datetime import datetime
+from typing import List, Optional
 
-// backend/shared/dto/order.dto.ts
-export interface Order {
-  id: string; // UUID
-  userId: string; // UUID
-  items: OrderItem[];
-  total: number; // in cents
-  status: 'pending' | 'paid' | 'shipped' | 'cancelled';
-  createdAt: string; // ISO8601
-  updatedAt: string; // ISO8601
-}
+class NewsSource(BaseModel):
+    id: int
+    name: str
+    url: str
 
-export interface OrderItem {
-  productId: string; // UUID
-  quantity: number;
-  price: number; // in cents
-}
+class NewsItem(BaseModel):
+    id: int
+    title: str
+    summary: str
+    url: str
+    published_at: datetime
+    source: NewsSource
+    country: str
+    tags: List[str]
+    priority: int
 
-// backend/shared/dto/auth.dto.ts
-export interface AuthRequest {
-  email: string;
-  password: string;
-}
+class NewsItemCreate(BaseModel):
+    title: str
+    summary: str
+    url: str
+    published_at: datetime
+    source_id: int
+    country: str
+    tags: List[str]
+    priority: int
 
-export interface AuthResponse {
-  accessToken: string;
-  refreshToken: string;
-  user: User;
-}
+class NewsItemUpdate(BaseModel):
+    title: Optional[str] = None
+    summary: Optional[str] = None
+    url: Optional[str] = None
+    published_at: Optional[datetime] = None
+    source_id: Optional[int] = None
+    country: Optional[str] = None
+    tags: Optional[List[str]] = None
+    priority: Optional[int] = None
+
+class User(BaseModel):
+    id: int
+    email: str
+    full_name: str
+    is_active: bool
+
+class UserCreate(BaseModel):
+    email: str
+    full_name: str
+    password: str
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str
 ```
 
-### Frontend (React/TypeScript) — Interfaces
+### TypeScript (Frontend Interfaces)
 
 ```typescript
-// frontend/src/types/product.ts
-export interface Product {
-  id: string;
+// frontend/src/types/models.ts
+
+export interface NewsSource {
+  id: number;
   name: string;
-  description: string;
-  price: number;
-  imageUrl: string;
-  stock: number;
-  category: string;
-  createdAt: string;
-  updatedAt: string;
+  url: string;
 }
 
-// frontend/src/types/user.ts
+export interface NewsItem {
+  id: number;
+  title: string;
+  summary: string;
+  url: string;
+  published_at: string; // ISO 8601
+  source: NewsSource;
+  country: string;
+  tags: string[];
+  priority: number;
+}
+
+export interface NewsItemCreate {
+  title: string;
+  summary: string;
+  url: string;
+  published_at: string; // ISO 8601
+  source_id: number;
+  country: string;
+  tags: string[];
+  priority: number;
+}
+
+export interface NewsItemUpdate {
+  title?: string;
+  summary?: string;
+  url?: string;
+  published_at?: string;
+  source_id?: number;
+  country?: string;
+  tags?: string[];
+  priority?: number;
+}
+
 export interface User {
-  id: string;
+  id: number;
   email: string;
-  passwordHash: string;
-  name: string;
-  role: 'customer' | 'admin';
-  createdAt: string;
-  updatedAt: string;
+  full_name: string;
+  is_active: boolean;
 }
 
-// frontend/src/types/order.ts
-export interface Order {
-  id: string;
-  userId: string;
-  items: OrderItem[];
-  total: number;
-  status: 'pending' | 'paid' | 'shipped' | 'cancelled';
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface OrderItem {
-  productId: string;
-  quantity: number;
-  price: number;
-}
-
-// frontend/src/types/auth.ts
-export interface AuthRequest {
+export interface UserCreate {
   email: string;
+  full_name: string;
   password: string;
 }
 
-export interface AuthResponse {
-  accessToken: string;
-  refreshToken: string;
-  user: User;
+export interface Token {
+  access_token: string;
+  token_type: string;
 }
 ```
 
@@ -150,85 +158,56 @@ export interface AuthResponse {
 
 ## 3. API ENDPOINTS
 
-### Auth Service
+### Auth
+
+- **POST /api/auth/login**
+  - Request: `{ "email": string, "password": string }`
+  - Response: `Token`
 
 - **POST /api/auth/register**
-  - Request: `AuthRequest`
-  - Response: `AuthResponse`
-- **POST /api/auth/login**
-  - Request: `AuthRequest`
-  - Response: `AuthResponse`
-- **POST /api/auth/refresh**
-  - Request:
-    ```json
-    { "refreshToken": "string" }
-    ```
-  - Response: `AuthResponse`
+  - Request: `UserCreate`
+  - Response: `User`
+
 - **GET /api/auth/me**
   - Auth: Bearer token
   - Response: `User`
 
-### Product Service
+---
 
-- **GET /api/products**
-  - Query: `?category=string` (optional)
-  - Response: `Product[]`
-- **GET /api/products/:id**
-  - Response: `Product`
-- **POST /api/products**
-  - Auth: Bearer token (admin only)
-  - Request: `Product` (except `id`, `createdAt`, `updatedAt`)
-  - Response: `Product`
-- **PUT /api/products/:id**
-  - Auth: Bearer token (admin only)
-  - Request: Partial `Product` (fields to update)
-  - Response: `Product`
-- **DELETE /api/products/:id**
-  - Auth: Bearer token (admin only)
-  - Response:
-    ```json
-    { "success": true }
-    ```
+### News
 
-### Order Service
+- **GET /api/news**
+  - Query params: `country?: string`, `tag?: string`, `priority?: int`, `limit?: int`, `offset?: int`
+  - Response: `{ items: NewsItem[], total: int }`
 
-- **GET /api/orders**
-  - Auth: Bearer token
-  - Response: `Order[]` (for current user, or all if admin)
-- **GET /api/orders/:id**
-  - Auth: Bearer token
-  - Response: `Order`
-- **POST /api/orders**
-  - Auth: Bearer token
-  - Request:
-    ```json
-    {
-      "items": [
-        { "productId": "string", "quantity": number }
-      ]
-    }
-    ```
-  - Response: `Order`
-- **PUT /api/orders/:id/status**
-  - Auth: Bearer token (admin only)
-  - Request:
-    ```json
-    { "status": "pending" | "paid" | "shipped" | "cancelled" }
-    ```
-  - Response: `Order`
+- **GET /api/news/{id}**
+  - Response: `NewsItem`
 
-### User Service
+- **POST /api/news**
+  - Auth: Bearer token
+  - Request: `NewsItemCreate`
+  - Response: `NewsItem`
 
-- **GET /api/users/me**
+- **PATCH /api/news/{id}**
   - Auth: Bearer token
-  - Response: `User`
-- **GET /api/users/:id**
-  - Auth: Bearer token (admin only)
-  - Response: `User`
-- **PUT /api/users/me**
+  - Request: `NewsItemUpdate`
+  - Response: `NewsItem`
+
+- **DELETE /api/news/{id}**
   - Auth: Bearer token
-  - Request: Partial `User` (fields to update, except `role`, `id`)
-  - Response: `User`
+  - Response: `{ "ok": true }`
+
+---
+
+### News Sources
+
+- **GET /api/sources**
+  - Response: `NewsSource[]`
+
+- **POST /api/sources**
+  - Auth: Bearer token
+  - Request: `{ name: string, url: string }`
+  - Response: `NewsSource`
 
 ---
 
@@ -238,163 +217,114 @@ export interface AuthResponse {
 
 | Service             | Listening Port | Path                        |
 |---------------------|---------------|-----------------------------|
-| auth-service        | 23001         | backend/auth-service/       |
-| product-service     | 23002         | backend/product-service/    |
-| order-service       | 23003         | backend/order-service/      |
-| user-service        | 23004         | backend/user-service/       |
-| frontend            | 24000         | frontend/                   |
-| redis               | 26379         | (docker-compose only)       |
-| rabbitmq            | 25672         | (docker-compose only)       |
-| postgres            | 25432         | (docker-compose only)       |
+| news-service        | 23001         | backend/news-service/       |
+| auth-service        | 23002         | backend/auth-service/       |
 
 ### SHARED MODULES
 
-| Shared path         | Imported by services                                 |
-|---------------------|-----------------------------------------------------|
-| backend/shared/     | auth-service, product-service, order-service, user-service |
+| Shared path         | Imported by services           |
+|---------------------|-------------------------------|
+| backend/shared/     | news-service, auth-service    |
 
-### FILE TREE
+---
+
+### File Tree
 
 ```
 .
 ├── docker-compose.yml                # Multi-service orchestration (all ports 21000+)
-├── .env.example                      # Template for all required environment variables
-├── .gitignore                        # Ignore node_modules, build, .env, etc.
-├── README.md                         # Project overview and setup instructions
-├── run.sh                            # Root-level startup script for local dev
+├── .env.example                     # Template for all required environment variables
+├── .gitignore                       # Ignore Python, Node, and build artifacts
+├── README.md                        # Project overview and setup instructions
+├── run.sh                           # Root-level startup script for local dev
 ├── backend/
-│   ├── shared/                       # Shared DTOs, utils, and constants
-│   │   ├── dto/
-│   │   │   ├── product.dto.ts        # Product interface
-│   │   │   ├── user.dto.ts           # User interface
-│   │   │   ├── order.dto.ts          # Order and OrderItem interfaces
-│   │   │   └── auth.dto.ts           # AuthRequest/AuthResponse interfaces
-│   │   └── utils/
-│   │       └── jwt.ts                # JWT utility functions
-│   ├── auth-service/
-│   │   ├── Dockerfile                # Docker build for auth-service (EXPOSE 23001)
-│   │   ├── src/
-│   │   │   ├── main.ts               # NestJS bootstrap
-│   │   │   ├── app.module.ts         # Root module
-│   │   │   ├── auth.controller.ts    # Auth endpoints
-│   │   │   ├── auth.service.ts       # Auth logic
-│   │   │   ├── user.entity.ts        # User entity/model
-│   │   │   └── ...                   # Other modules/services
-│   │   └── test/
-│   │       └── auth.e2e-spec.ts      # E2E tests
-│   ├── product-service/
-│   │   ├── Dockerfile                # Docker build for product-service (EXPOSE 23002)
-│   │   ├── src/
-│   │   │   ├── main.ts
-│   │   │   ├── app.module.ts
-│   │   │   ├── product.controller.ts
-│   │   │   ├── product.service.ts
-│   │   │   ├── product.entity.ts
-│   │   │   └── ...
-│   │   └── test/
-│   │       └── product.e2e-spec.ts
-│   ├── order-service/
-│   │   ├── Dockerfile                # Docker build for order-service (EXPOSE 23003)
-│   │   ├── src/
-│   │   │   ├── main.ts
-│   │   │   ├── app.module.ts
-│   │   │   ├── order.controller.ts
-│   │   │   ├── order.service.ts
-│   │   │   ├── order.entity.ts
-│   │   │   └── ...
-│   │   └── test/
-│   │       └── order.e2e-spec.ts
-│   ├── user-service/
-│   │   ├── Dockerfile                # Docker build for user-service (EXPOSE 23004)
-│   │   ├── src/
-│   │   │   ├── main.ts
-│   │   │   ├── app.module.ts
-│   │   │   ├── user.controller.ts
-│   │   │   ├── user.service.ts
-│   │   │   ├── user.entity.ts
-│   │   │   └── ...
-│   │   └── test/
-│   │       └── user.e2e-spec.ts
-│   └── shared/
-│       ├── dto/
-│       │   ├── product.dto.ts
-│       │   ├── user.dto.ts
-│       │   ├── order.dto.ts
-│       │   └── auth.dto.ts
-│       └── utils/
-│           └── jwt.ts
-├── frontend/
-│   ├── Dockerfile                    # Docker build for frontend (EXPOSE 24000)
-│   ├── public/
-│   │   └── index.html                # Entry HTML file
-│   ├── src/
-│   │   ├── main.tsx                  # Entry point for React app
-│   │   ├── App.tsx                   # Root component
+│   ├── shared/
+│   │   ├── models.py                # Pydantic models shared across services
+│   │   ├── db.py                    # Shared DB connection logic
+│   │   └── utils.py                 # Shared utility functions
+│   ├── news-service/
+│   │   ├── main.py                  # FastAPI app entrypoint (EXPOSE 23001)
 │   │   ├── api/
-│   │   │   ├── auth.ts               # Auth API client
-│   │   │   ├── products.ts           # Product API client
-│   │   │   ├── orders.ts             # Order API client
-│   │   │   └── users.ts              # User API client
+│   │   │   ├── news.py              # News endpoints
+│   │   │   └── sources.py           # News source endpoints
+│   │   ├── crud/
+│   │   │   ├── news.py              # News CRUD logic
+│   │   │   └── sources.py           # Source CRUD logic
+│   │   ├── models.py                # SQLAlchemy models for news-service
+│   │   ├── dependencies.py          # FastAPI dependencies
+│   │   ├── Dockerfile               # Service Dockerfile (EXPOSE 23001)
+│   │   └── start.sh                 # Service startup script
+│   ├── auth-service/
+│   │   ├── main.py                  # FastAPI app entrypoint (EXPOSE 23002)
+│   │   ├── api/
+│   │   │   ├── auth.py              # Auth endpoints (login, register, me)
+│   │   ├── crud/
+│   │   │   ├── users.py             # User CRUD logic
+│   │   ├── models.py                # SQLAlchemy models for auth-service
+│   │   ├── dependencies.py          # FastAPI dependencies
+│   │   ├── security.py              # JWT and password hashing logic
+│   │   ├── Dockerfile               # Service Dockerfile (EXPOSE 23002)
+│   │   └── start.sh                 # Service startup script
+├── frontend/
+│   ├── public/
+│   │   ├── index.html               # HTML entrypoint (script src="/src/main.tsx")
+│   ├── src/
+│   │   ├── main.tsx                 # React app entrypoint
+│   │   ├── App.tsx                  # Root component with router
+│   │   ├── api/
+│   │   │   ├── news.ts              # News API client
+│   │   │   ├── auth.ts              # Auth API client
+│   │   │   └── sources.ts           # Sources API client
 │   │   ├── hooks/
-│   │   │   ├── useAuth.ts            # Auth state hook
-│   │   │   ├── useProducts.ts        # Product state hook
-│   │   │   ├── useOrders.ts          # Order state hook
-│   │   │   └── useUser.ts            # User state hook
+│   │   │   ├── useNews.ts           # News state hook
+│   │   │   ├── useAuth.ts           # Auth state hook
+│   │   │   └── useSources.ts        # Sources state hook
 │   │   ├── components/
-│   │   │   ├── ProductList.tsx       # Product list UI
-│   │   │   ├── ProductCard.tsx       # Product card UI
-│   │   │   ├── ProductForm.tsx       # Product create/edit form
-│   │   │   ├── OrderList.tsx         # Order list UI
-│   │   │   ├── OrderDetails.tsx      # Order details UI
-│   │   │   ├── AuthForm.tsx          # Login/register form
-│   │   │   └── UserProfile.tsx       # User profile UI
+│   │   │   ├── NewsList.tsx         # News list display
+│   │   │   ├── NewsForm.tsx         # News create/edit form
+│   │   │   ├── NewsItemCard.tsx     # Single news item card
+│   │   │   ├── SourceSelect.tsx     # Source dropdown
+│   │   │   ├── LoginForm.tsx        # Login form
+│   │   │   ├── RegisterForm.tsx     # Registration form
+│   │   │   └── UserMenu.tsx         # User dropdown/menu
+│   │   ├── pages/
+│   │   │   ├── NewsFeed.tsx         # Main news feed page
+│   │   │   ├── NewsDetail.tsx       # News detail page
+│   │   │   ├── Login.tsx            # Login page
+│   │   │   ├── Register.tsx         # Register page
+│   │   │   └── NotFound.tsx         # 404 page
 │   │   ├── types/
-│   │   │   ├── product.ts
-│   │   │   ├── user.ts
-│   │   │   ├── order.ts
-│   │   │   └── auth.ts
+│   │   │   └── models.ts            # TypeScript interfaces (see §2)
 │   │   ├── styles/
-│   │   │   ├── tokens.ts             # Design tokens (see §9)
-│   │   │   └── global.css
+│   │   │   ├── tokens.ts            # Design tokens (see §9)
+│   │   │   └── global.css           # Global CSS
 │   │   └── utils/
-│   │       └── storage.ts            # LocalStorage/session helpers
-│   └── test/
-│       ├── App.test.tsx
-│       └── components/
-│           ├── ProductList.test.tsx
-│           └── OrderList.test.tsx
+│   │       └── auth.ts              # Token storage helpers
+│   ├── Dockerfile                   # Frontend Dockerfile (EXPOSE 23100)
+│   └── start.sh                     # Frontend startup script
 ```
 
 ---
 
 ## 5. ENVIRONMENT VARIABLES
 
-| Name                        | Type     | Description                                              | Example Value                  |
-|-----------------------------|----------|----------------------------------------------------------|-------------------------------|
-| NODE_ENV                    | string   | Node environment ("development", "production")           | development                   |
-| POSTGRES_HOST               | string   | PostgreSQL host (service name in docker-compose)         | postgres                      |
-| POSTGRES_PORT               | number   | PostgreSQL port (container-internal)                     | 5432                          |
-| POSTGRES_USER               | string   | PostgreSQL username                                      | project_user                  |
-| POSTGRES_PASSWORD           | string   | PostgreSQL password                                      | supersecret                   |
-| POSTGRES_DB                 | string   | PostgreSQL database name                                 | project_db                    |
-| REDIS_HOST                  | string   | Redis host                                               | redis                         |
-| REDIS_PORT                  | number   | Redis port (container-internal)                          | 6379                          |
-| RABBITMQ_HOST               | string   | RabbitMQ host                                            | rabbitmq                      |
-| RABBITMQ_PORT               | number   | RabbitMQ port (container-internal)                       | 5672                          |
-| JWT_SECRET                  | string   | Secret key for JWT signing                               | myjwtsecret                   |
-| JWT_EXPIRES_IN              | string   | JWT expiration (e.g., "1h", "7d")                        | 1h                            |
-| REFRESH_TOKEN_SECRET        | string   | Secret for refresh tokens                                | myrefreshsecret               |
-| REFRESH_TOKEN_EXPIRES_IN    | string   | Refresh token expiration                                 | 7d                            |
-| AWS_ACCESS_KEY_ID           | string   | AWS access key for S3/CloudFront                         | AKIA...                       |
-| AWS_SECRET_ACCESS_KEY       | string   | AWS secret key for S3/CloudFront                         | ...                           |
-| AWS_REGION                  | string   | AWS region                                               | us-east-1                     |
-| S3_BUCKET_NAME              | string   | S3 bucket for product images                             | project-product-images        |
-| FRONTEND_URL                | string   | Public URL of the frontend                               | http://localhost:24000        |
-| BACKEND_AUTH_URL            | string   | Auth service base URL                                    | http://localhost:23001        |
-| BACKEND_PRODUCT_URL         | string   | Product service base URL                                 | http://localhost:23002        |
-| BACKEND_ORDER_URL           | string   | Order service base URL                                   | http://localhost:23003        |
-| BACKEND_USER_URL            | string   | User service base URL                                    | http://localhost:23004        |
-| PORT                        | number   | Service listening port (per service, see PORT TABLE)     | 23001                         |
+| Name                        | Type    | Description                                         | Example Value                |
+|-----------------------------|---------|-----------------------------------------------------|-----------------------------|
+| POSTGRES_HOST               | string  | PostgreSQL host (Docker service name or IP)         | postgres                    |
+| POSTGRES_PORT               | int     | PostgreSQL port (container-internal, default 5432)  | 5432                        |
+| POSTGRES_DB                 | string  | PostgreSQL database name                            | cencosud_news               |
+| POSTGRES_USER               | string  | PostgreSQL username                                 | cencosud                    |
+| POSTGRES_PASSWORD           | string  | PostgreSQL password                                 | supersecret                 |
+| NEWS_SERVICE_PORT           | int     | Port for news-service FastAPI app                   | 23001                       |
+| AUTH_SERVICE_PORT           | int     | Port for auth-service FastAPI app                   | 23002                       |
+| FRONTEND_PORT               | int     | Port for frontend React app                         | 23100                       |
+| JWT_SECRET_KEY              | string  | Secret key for JWT signing                          | change_this_secret          |
+| JWT_ALGORITHM               | string  | JWT signing algorithm                               | HS256                       |
+| ACCESS_TOKEN_EXPIRE_MINUTES | int     | JWT access token expiration (minutes)               | 60                          |
+| CORS_ORIGINS                | string  | Comma-separated list of allowed CORS origins        | http://localhost:23100      |
+| AWS_REGION                  | string  | AWS region for deployment                           | us-east-1                   |
+| AWS_ACCESS_KEY_ID           | string  | AWS access key ID                                   | AKIA...                     |
+| AWS_SECRET_ACCESS_KEY       | string  | AWS secret access key                               | ...                         |
 
 ---
 
@@ -402,52 +332,91 @@ export interface AuthResponse {
 
 ### Backend
 
-- `from backend.shared.dto.product import Product`
-- `from backend.shared.dto.user import User`
-- `from backend.shared.dto.order import Order, OrderItem`
-- `from backend.shared.dto.auth import AuthRequest, AuthResponse`
-- `from backend.shared.utils.jwt import signJwt, verifyJwt, decodeJwt`
+- `from shared.models import NewsItem, NewsItemCreate, NewsItemUpdate, NewsSource, User, UserCreate, Token`
+- `from shared.db import get_db_session`
+- `from shared.utils import hash_password, verify_password`
+- `from news-service.crud.news import create_news_item, get_news_items, get_news_item, update_news_item, delete_news_item`
+- `from news-service.crud.sources import create_source, get_sources`
+- `from news-service.api.news import router as news_router`
+- `from news-service.api.sources import router as sources_router`
+- `from auth-service.crud.users import create_user, get_user_by_email, authenticate_user`
+- `from auth-service.api.auth import router as auth_router`
+- `from auth-service.security import create_access_token, get_current_user, verify_password, hash_password`
 
 ### Frontend
 
-- `import { Product } from '../types/product'`
-- `import { User } from '../types/user'`
-- `import { Order, OrderItem } from '../types/order'`
-- `import { AuthRequest, AuthResponse } from '../types/auth'`
+- `import { NewsItem, NewsItemCreate, NewsItemUpdate, NewsSource, User, UserCreate, Token } from '../types/models'`
+- `import { useNews } from '../hooks/useNews'`
 - `import { useAuth } from '../hooks/useAuth'`
-- `import { useProducts } from '../hooks/useProducts'`
-- `import { useOrders } from '../hooks/useOrders'`
-- `import { useUser } from '../hooks/useUser'`
+- `import { useSources } from '../hooks/useSources'`
 - `import { tokens } from '../styles/tokens'`
-- `import { getToken, setToken, clearToken } from '../utils/storage'`
+- `import { createNews, fetchNews, updateNews, deleteNews } from '../api/news'`
+- `import { login, register, getMe } from '../api/auth'`
+- `import { fetchSources, createSource } from '../api/sources'`
 
 ---
 
 ## 7. FRONTEND STATE & COMPONENT CONTRACTS
 
-### Shared State Primitives (React Hooks)
+### Shared State Primitives
 
-- `useAuth() → { user, accessToken, refreshToken, loading, error, login, register, logout, refresh }`
-- `useProducts() → { products, loading, error, fetchProducts, createProduct, updateProduct, deleteProduct }`
-- `useOrders() → { orders, loading, error, fetchOrders, createOrder, updateOrderStatus }`
-- `useUser() → { user, loading, error, fetchUser, updateUser }`
+- **useNews() →**
+  ```typescript
+  {
+    news: NewsItem[];
+    total: number;
+    loading: boolean;
+    error: string | null;
+    fetchNews: (params?: { country?: string; tag?: string; priority?: number; limit?: number; offset?: number }) => Promise<void>;
+    createNews: (data: NewsItemCreate) => Promise<NewsItem>;
+    updateNews: (id: number, data: NewsItemUpdate) => Promise<NewsItem>;
+    deleteNews: (id: number) => Promise<void>;
+    deletingId: number | null;
+  }
+  ```
+
+- **useAuth() →**
+  ```typescript
+  {
+    user: User | null;
+    loading: boolean;
+    error: string | null;
+    login: (email: string, password: string) => Promise<void>;
+    register: (data: UserCreate) => Promise<void>;
+    logout: () => void;
+    token: string | null;
+  }
+  ```
+
+- **useSources() →**
+  ```typescript
+  {
+    sources: NewsSource[];
+    loading: boolean;
+    error: string | null;
+    fetchSources: () => Promise<void>;
+    createSource: (data: { name: string; url: string }) => Promise<NewsSource>;
+  }
+  ```
+
+---
 
 ### Reusable Component Props
 
-- `ProductList` props: `{ products: Product[], onSelect: (id: string) => void }`
-- `ProductCard` props: `{ product: Product, onAddToCart?: (id: string) => void, onEdit?: (id: string) => void, onDelete?: (id: string) => void }`
-- `ProductForm` props: `{ product?: Product, onSubmit: (data: Omit<Product, 'id' | 'createdAt' | 'updatedAt'>) => void, loading: boolean }`
-- `OrderList` props: `{ orders: Order[], onSelect: (id: string) => void }`
-- `OrderDetails` props: `{ order: Order, onStatusChange?: (status: Order['status']) => void }`
-- `AuthForm` props: `{ onSubmit: (data: AuthRequest) => void, loading: boolean, error?: string, mode: 'login' | 'register' }`
-- `UserProfile` props: `{ user: User, onUpdate: (data: Partial<Omit<User, 'id' | 'role'>>) => void, loading: boolean }`
+- **NewsList props:** `{ news: NewsItem[], onDelete: (id: number) => void, deletingId: number | null }`
+- **NewsForm props:** `{ onSubmit: (data: NewsItemCreate | NewsItemUpdate) => void, loading: boolean, initialData?: NewsItem }`
+- **NewsItemCard props:** `{ newsItem: NewsItem, onEdit: () => void, onDelete: () => void, deleting: boolean }`
+- **SourceSelect props:** `{ sources: NewsSource[], value: number | null, onChange: (id: number) => void }`
+- **LoginForm props:** `{ onSubmit: (email: string, password: string) => void, loading: boolean, error: string | null }`
+- **RegisterForm props:** `{ onSubmit: (data: UserCreate) => void, loading: boolean, error: string | null }`
+- **UserMenu props:** `{ user: User, onLogout: () => void }`
 
 ---
 
 ## 8. FILE EXTENSION CONVENTION
 
 - All frontend files use `.tsx` (TypeScript React).
-- The project is TypeScript throughout (backend and frontend).
+- The project is TypeScript-first for the frontend; no `.jsx` or `.js` files in `src/`.
 - Entry point: `/src/main.tsx` (as referenced in `public/index.html` via `<script type="module" src="/src/main.tsx"></script>`).
 
 ---
@@ -455,26 +424,24 @@ export interface AuthResponse {
 ## 9. DESIGN TOKENS
 
 ```typescript
+// frontend/src/styles/tokens.ts
+
 export const tokens = {
   colors: {
-    primary: '#6C63FF',
-    secondary: '#FFB830',
-    accent: '#FF6584',
-    background: '#F8F9FB',
+    primary: '#0057B8',
+    secondary: '#FFD100',
+    background: '#F5F7FA',
     surface: '#FFFFFF',
-    text: '#22223B',
-    muted: '#9A8C98',
-    border: '#E0E0E0',
-    success: '#4BB543',
-    error: '#FF3333',
-    warning: '#FFB830',
-    info: '#3ABFF8'
+    text: '#222222',
+    muted: '#6B7280',
+    error: '#E53E3E',
+    success: '#38A169',
+    warning: '#F6AD55',
+    info: '#3182CE'
   },
   typography: {
-    fontFamily: "'Inter', sans-serif",
+    fontFamily: "'Inter', 'Helvetica Neue', Arial, sans-serif",
     fontSizeBase: '1rem',
-    fontSizeSm: '0.875rem',
-    fontSizeLg: '1.25rem',
     fontWeightRegular: 400,
     fontWeightBold: 700,
     lineHeightBase: 1.5
@@ -485,10 +452,8 @@ export const tokens = {
     2: '0.5rem',
     3: '0.75rem',
     4: '1rem',
-    5: '1.25rem',
     6: '1.5rem',
     8: '2rem',
-    10: '2.5rem',
     12: '3rem',
     16: '4rem'
   },
@@ -499,13 +464,9 @@ export const tokens = {
     full: '9999px'
   },
   shadows: {
-    sm: '0 1px 2px rgba(60,60,60,0.07)',
-    md: '0 2px 8px rgba(60,60,60,0.10)',
-    lg: '0 4px 16px rgba(60,60,60,0.13)'
+    sm: '0 1px 2px 0 rgba(0,0,0,0.05)',
+    md: '0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -2px rgba(0,0,0,0.1)',
+    lg: '0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -4px rgba(0,0,0,0.1)'
   }
 };
 ```
-
----
-
-**All sections above are comprehensive and must be implemented verbatim. No field, endpoint, or file may be omitted or renamed. All code, configuration, and documentation must strictly follow the contracts and conventions defined in this specification.**

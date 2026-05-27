@@ -5,50 +5,48 @@
 
 ## Figma Source
 
-File URL: https://www.figma.com/design/J3k9BQl6Vp2EHnzbKxws1A/?node-id=9-2
+File URL: https://www.figma.com/design/yNAE0pve4t73opHZQDLbWh?node-id=10-2
 
 ## Visual Direction
 
-Diseño limpio, acogedor y centrado en el producto, con una paleta de colores cálidos y naturales que evocan la ternura y el cuidado de los gatos. Tipografía sans-serif legible, imágenes de productos de alta calidad y elementos gráficos sutiles (huellas, siluetas felinas) para reforzar el nicho. La interfaz debe transmitir confianza, facilidad de uso y una experiencia de compra placentera.
+Diseño corporativo, profesional y limpio, con énfasis en la claridad de la información y la jerarquía visual del semáforo de prioridad. Uso de colores institucionales de Cencosud (rojo corporativo, grises neutros, blanco) y acentos de semáforo (rojo, amarillo, verde) para indicar prioridad. Tipografía sans-serif moderna (Inter) para legibilidad en dashboards. Iconografía simple y coherente. Tarjetas de noticias con sombras suaves y bordes redondeados. Gráficos de barras y métricas claras.
 
 ## Pages / Figma Frames
 
-### 1. Inicio (Home)
-- **description**: Hero con imagen de gato y CTA 'Ver productos'. Secciones: categorías destacadas, productos más vendidos, testimonios, newsletter.
+### 1. Dashboard Principal
 
-### 2. Catálogo de Productos
-- **description**: Grid de cards de producto con filtros laterales (categoría, precio, valoración) y ordenación. Paginación o carga infinita.
+### 2. Lista de Noticias
 
-### 3. Detalle de Producto
-- **description**: Imagen grande del producto, galería de imágenes, nombre, precio, descripción, selector de cantidad, botón añadir al carrito, reseñas.
+### 3. Detalle de Noticia
 
-### 4. Carrito de Compras
-- **description**: Lista de productos añadidos con imagen, nombre, precio, cantidad, subtotal. Resumen del pedido (subtotal, envío, total). Botón 'Proceder al pago'.
+### 4. Reportes Dinámicos
 
 ## Design Tokens
 
 ```json
 {
   "colors": {
-    "primary": "#F28C28",
-    "primary_light": "#FDBF60",
-    "primary_dark": "#C76A1A",
-    "secondary": "#4A90D9",
-    "secondary_light": "#7AB3E8",
-    "secondary_dark": "#2C6FAC",
-    "accent": "#E85D75",
-    "neutral_white": "#FFFFFF",
-    "neutral_light": "#F5F5F5",
-    "neutral_medium": "#E0E0E0",
-    "neutral_dark": "#333333",
-    "neutral_black": "#1A1A1A",
-    "success": "#27AE60",
-    "warning": "#F39C12",
-    "error": "#E74C3C",
-    "info": "#3498DB"
+    "primary": "#C8102E",
+    "primary_dark": "#A00D24",
+    "primary_light": "#FCE4EC",
+    "secondary": "#4A4A4A",
+    "secondary_light": "#F5F5F5",
+    "background": "#FFFFFF",
+    "surface": "#FAFAFA",
+    "text_primary": "#212121",
+    "text_secondary": "#757575",
+    "text_on_primary": "#FFFFFF",
+    "border": "#E0E0E0",
+    "success": "#4CAF50",
+    "warning": "#FFC107",
+    "danger": "#F44336",
+    "info": "#2196F3",
+    "semaphore_red": "#F44336",
+    "semaphore_yellow": "#FFC107",
+    "semaphore_green": "#4CAF50"
   },
   "typography": {
-    "font_family": "'Inter', sans-serif",
+    "font_family": "Inter, sans-serif",
     "headings": {
       "h1": {
         "size": 32,
@@ -77,7 +75,7 @@ Diseño limpio, acogedor y centrado en el producto, con una paleta de colores c�
         "weight": 400,
         "line_height": 1.5
       },
-      "regular": {
+      "medium": {
         "size": 14,
         "weight": 400,
         "line_height": 1.5
@@ -88,10 +86,11 @@ Diseño limpio, acogedor y centrado en el producto, con una paleta de colores c�
         "line_height": 1.4
       }
     },
-    "button": {
-      "size": 16,
+    "label": {
+      "size": 12,
       "weight": 600,
-      "line_height": 1.2
+      "letter_spacing": 0.5,
+      "text_transform": "uppercase"
     },
     "caption": {
       "size": 11,
@@ -105,8 +104,7 @@ Diseño limpio, acogedor y centrado en el producto, con una paleta de colores c�
     "md": 16,
     "lg": 24,
     "xl": 32,
-    "xxl": 48,
-    "section": 64
+    "xxl": 48
   },
   "border_radius": {
     "sm": 4,
@@ -116,92 +114,69 @@ Diseño limpio, acogedor y centrado en el producto, con una paleta de colores c�
     "full": 9999
   },
   "shadows": {
-    "card": "0 2px 8px rgba(0,0,0,0.08)",
-    "elevated": "0 4px 16px rgba(0,0,0,0.12)",
-    "modal": "0 8px 32px rgba(0,0,0,0.2)"
+    "card": "0 2px 4px rgba(0,0,0,0.08)",
+    "elevated": "0 4px 12px rgba(0,0,0,0.12)",
+    "modal": "0 8px 24px rgba(0,0,0,0.16)"
   },
-  "icon_image_style": "Iconos lineales con grosor de 2px, esquinas redondeadas. Im\u00e1genes de productos con fondo blanco o transparente, recortadas limpiamente, con sombra suave. Uso de iconos de huella de gato como elemento decorativo.",
-  "motion_interaction": "Transiciones suaves de 0.2s a 0.3s para hover y focus. Animaciones de carga sutiles (spinner con huella). Microinteracciones en botones (cambio de color, elevaci\u00f3n)."
+  "iconography": {
+    "style": "outline",
+    "size_sm": 16,
+    "size_md": 20,
+    "size_lg": 24
+  },
+  "motion": {
+    "duration_fast": 150,
+    "duration_normal": 300,
+    "easing": "ease-in-out"
+  }
 }
 ```
 
 ## Base Components
 
-### `Navbar Principal`
-Barra de navegación superior fija con logo, enlaces a categorías, icono de carrito con contador, y menú de usuario (iniciar sesión/perfil). Responsive: se convierte en menú hamburguesa en móvil.
+### `Navegación Principal`
+Barra lateral izquierda colapsable con iconos y etiquetas. Incluye logo de Cencosud, enlaces a Dashboard, Noticias, Reportes, Configuración, KPIs, Perfil. Indicador de página activa con color primario.
 
-### `CTA Button (Primario)`
-Botón principal con fondo primary, texto blanco, border-radius md, hover con primary_dark. Usado para 'Añadir al carrito', 'Comprar ahora', 'Finalizar pedido'.
+### `Botón CTA Primario`
+Fondo rojo Cencosud (#C8102E), texto blanco, border-radius 8px, padding 12px 24px, hover más oscuro, transición suave. Usado para acciones principales como 'Generar Reporte', 'Aplicar Filtros', 'Guardar Configuración'.
 
-### `Card de Producto`
-Tarjeta con imagen del producto, nombre, precio, valoración (estrellas), y botón de añadir al carrito. Sombra card, border-radius lg. Hover eleva la sombra.
+### `Tarjeta de Noticia`
+Contenedor con sombra card, border-radius 8px, padding 16px. Incluye: indicador de semáforo (círculo rojo/amarillo/verde), título de noticia (h4), fuente y fecha (caption), snippet (body small), etiquetas de país y categoría (chips), botón de feedback (útil/poco útil).
 
-### `Input de Formulario`
-Campo de texto con borde neutral_medium, focus con primary, label flotante o superior. Incluye estado de error con mensaje.
+### `Semáforo de Prioridad`
+Indicador visual circular de 12px de diámetro con color según prioridad: rojo (#F44336) para alta, amarillo (#FFC107) para media, verde (#4CAF50) para baja. Puede incluir tooltip con el score numérico.
 
-### `Footer`
-Pie de página con enlaces rápidos, información de contacto, redes sociales, y copyright. Fondo neutral_dark, texto blanco.
+### `Chip / Etiqueta`
+Pequeño contenedor redondeado con texto y color de fondo suave. Usado para país (ej. Chile, Argentina) y categoría (ej. Regulación, Competencia).
 
-### `Breadcrumb`
-Navegación de migas de pan para páginas internas (ej. Inicio > Catálogo > Producto).
+### `Barra de Búsqueda y Filtros`
+Input de búsqueda con icono de lupa, acompañado de dropdowns para filtrar por país, categoría, rango de score, fecha. Botón de aplicar y limpiar.
 
-### `Rating Stars`
-Componente de valoración con estrellas interactivas (rellenas/vacías) y puntuación numérica.
+### `Tabla de Datos`
+Tabla responsive con columnas: título, fuente, país, score, semáforo, fecha, acciones. Filas alternadas con color de fondo. Encabezados fijos. Paginación inferior.
+
+### `Gráfico / Chart`
+Componente de visualización de datos (barras, líneas, dona) usando colores de la paleta. Incluye leyenda y tooltip interactivo.
 
 ### `Modal / Diálogo`
-Ventana modal con overlay, título, contenido, y botones de acción. Usado para confirmaciones o alertas.
+Ventana emergente centrada con overlay semitransparente. Título, contenido, botones de acción (primario y secundario). Cierre con X o clic fuera.
 
-### `Badge / Etiqueta`
-Etiqueta pequeña para indicar descuento, nuevo, oferta. Fondo accent o primary, texto blanco.
-
-### `Spinner / Loader`
-Indicador de carga circular con icono de huella de gato animado.
+### `Formulario de Configuración`
+Grupo de campos con etiquetas, inputs, sliders, checkboxes, botones de guardar/cancelar. Validación en línea.
 
 
 ## Preliminary Spec
 
 ```json
 {
-  "site_goal": "Establecer una plataforma de comercio electr\u00f3nico especializada en productos para gatos, resolviendo la necesidad de un canal de venta online dedicado, expandiendo el mercado, ofreciendo una experiencia de compra conveniente y posicionando al negocio como referente en el nicho felino.",
-  "audience": "Due\u00f1os de gatos, con un perfil que valora la comodidad de comprar online y busca productos espec\u00edficos y de calidad para sus mascotas. Usuarios secundarios podr\u00edan ser personas buscando regalos para amantes de los gatos.",
-  "readiness_reason": "El usuario ha confirmado el resumen del proyecto y ha solicitado proceder con la creaci\u00f3n de los artefactos del proyecto (documentaci\u00f3n, backlog y handoff al arquitecto).",
   "visual_references": [],
-  "constraints": [
-    "Presupuesto inicial para el desarrollo y lanzamiento del MVP a\u00fan no definido.",
-    "No se ha establecido una fecha l\u00edmite espec\u00edfica para el lanzamiento del MVP.",
-    "La plataforma deber\u00e1 ser compatible con est\u00e1ndares actuales de comercio electr\u00f3nico y pasarelas de pago seguras, con escalabilidad futura.",
-    "Cumplimiento con normativas de protecci\u00f3n de datos (GDPR o equivalentes locales) y leyes de comercio electr\u00f3nico.",
-    "La disponibilidad del equipo de desarrollo y otros recursos (dise\u00f1o, marketing) a\u00fan no est\u00e1 confirmada."
-  ],
-  "sections_or_pages": [
-    "Cat\u00e1logo de productos (Gesti\u00f3n y visualizaci\u00f3n de productos para gatos)",
-    "Carrito de compras y checkout (Funcionalidad para agregar productos, gestionar cantidades y realizar el pedido)",
-    "Gesti\u00f3n de pedidos (Visualizaci\u00f3n y seguimiento de pedidos realizados por el cliente)"
-  ],
-  "confirmed_assumptions": [
-    "El proyecto busca resolver la ausencia de un canal de venta online especializado en productos para gatos para expandir el negocio.",
-    "La soluci\u00f3n es una plataforma de comercio electr\u00f3nico dedicada a art\u00edculos felinos.",
-    "La iniciativa generar\u00e1 un aumento significativo en las ventas y fortalecer\u00e1 la presencia de la marca en un nicho de mercado espec\u00edfico.",
-    "Los usuarios primarios son due\u00f1os de gatos que valoran la comodidad de comprar online y buscan productos espec\u00edficos y de calidad.",
-    "El administrador principal ser\u00e1 el propietario del negocio, responsable de la gesti\u00f3n de inventario, pedidos y atenci\u00f3n al cliente.",
-    "El \u00e9xito se medir\u00e1 por tasa de conversi\u00f3n, ingresos por ventas, NPS, n\u00famero de pedidos mensuales y tr\u00e1fico web.",
-    "Los stakeholders clave incluyen: Sponsor Ejecutivo (propietario), Product Owner (asistente virtual), Usuarios Finales (due\u00f1os de gatos), Equipo de Desarrollo y Proveedores de Productos."
-  ],
-  "design_requirements": {
-    "content_needs": "Cat\u00e1logo variado, descripciones detalladas de productos.",
-    "interaction_needs": "Facilidad de navegaci\u00f3n, proceso de compra intuitivo, opciones de env\u00edo eficientes.",
-    "responsive_accessibility": "Acceso a trav\u00e9s de navegadores web en dispositivos m\u00f3viles y de escritorio."
-  },
+  "constraints": [],
+  "sections_or_pages": [],
+  "confirmed_assumptions": [],
   "ready_for_phase_2": true,
   "status": "complete",
   "open_questions": [],
-  "gaps_to_resolve": [
-    "Definici\u00f3n de tipos de productos espec\u00edficos a vender (alimentos, juguetes, accesorios, etc.).",
-    "Funcionalidades clave deseadas para la tienda (rese\u00f1as, suscripciones, perfiles de usuario, etc.) m\u00e1s all\u00e1 de lo b\u00e1sico.",
-    "Fecha tentativa o plazo deseado para el lanzamiento del e-commerce.",
-    "Presupuesto estimado disponible para el desarrollo y operaci\u00f3n de la plataforma.",
-    "Preferencias o requisitos espec\u00edficos sobre la tecnolog\u00eda a utilizar o plataformas existentes con las que integrar."
-  ]
+  "gaps_to_resolve": []
 }
 ```
 
@@ -214,17 +189,11 @@ Indicador de carga circular con icono de huella de gato animado.
     "success": true,
     "action": "get_design_context",
     "auth_required": false,
-    "message": "Retrieved design context for node 9:2 from Figma.",
+    "message": "Retrieved design context for node 10:2.",
     "figma": {
-      "file_key": "J3k9BQl6Vp2EHnzbKxws1A",
-      "node_id": "9:2",
-      "file_url": "https://www.figma.com/design/J3k9BQl6Vp2EHnzbKxws1A/?node-id=9-2",
-      "client_frameworks": [
-        "React"
-      ],
-      "client_languages": [
-        "TypeScript"
-      ],
+      "file_key": "yNAE0pve4t73opHZQDLbWh",
+      "node_id": "10:2",
+      "file_url": "https://www.figma.com/design/yNAE0pve4t73opHZQDLbWh?node-id=10-2",
       "implementation_target": "React + TypeScript + Tailwind CSS",
       "context_available": true
     }
@@ -245,10 +214,10 @@ Indicador de carga circular con icono de huella de gato animado.
     "success": true,
     "action": "get_variable_defs",
     "auth_required": false,
-    "message": "Variable definitions retrieved; no variables were returned for node 9:2.",
+    "message": "Variable definitions retrieved; no variables were returned for node 10:2.",
     "figma": {
-      "file_key": "J3k9BQl6Vp2EHnzbKxws1A",
-      "node_id": "9:2",
+      "file_key": "yNAE0pve4t73opHZQDLbWh",
+      "node_id": "10:2",
       "variables": {}
     }
   },
@@ -268,19 +237,19 @@ Indicador de carga circular con icono de huella de gato animado.
     "success": false,
     "action": "get_code_connect_map",
     "auth_required": false,
-    "message": "Code Connect access is unavailable for the authenticated Figma account: a Developer seat in an Organization or Enterprise plan is required.",
+    "message": "Code Connect is unavailable for this Figma account: a Developer seat in an Organization or Enterprise plan is required.",
     "figma": {
-      "file_key": "J3k9BQl6Vp2EHnzbKxws1A",
-      "node_id": "9:2",
-      "code_connect_label": "React",
-      "debug_uuid": "55a3cc12-9049-4b26-af78-43e6e68ac47f"
+      "file_key": "yNAE0pve4t73opHZQDLbWh",
+      "node_id": "10:2",
+      "debug_uuid": "54018bef-65aa-479f-bdf1-fffb9690ce39",
+      "code_connect_map": null
     }
   },
   "auth_required": false,
   "provider": "codex",
   "return_code": 0,
   "model": null,
-  "error": "Code Connect access is unavailable for the authenticated Figma account: a Developer seat in an Organization or Enterprise plan is required."
+  "error": "Code Connect is unavailable for this Figma account: a Developer seat in an Organization or Enterprise plan is required."
 }
 ```
 
@@ -288,21 +257,25 @@ Indicador de carga circular con icono de huella de gato animado.
 
 ```json
 {
-  "success": false,
+  "success": true,
   "result": {
-    "success": false,
+    "success": true,
     "action": "create_design_system_rules",
     "auth_required": false,
-    "message": "The configured Figma MCP tools do not expose create_design_system_rules in this session, so the action could not be completed without using unsupported tools.",
+    "message": "Generated React + TypeScript + Tailwind design system implementation rules from the Figma node context.",
     "figma": {
-      "file_key": "J3k9BQl6Vp2EHnzbKxws1A",
-      "file_url": "https://www.figma.com/design/J3k9BQl6Vp2EHnzbKxws1A/?node-id=9-2"
+      "file_key": "yNAE0pve4t73opHZQDLbWh",
+      "file_url": "https://www.figma.com/design/yNAE0pve4t73opHZQDLbWh?node-id=10-2",
+      "node_id": "10:2",
+      "node_url": "https://www.figma.com/design/yNAE0pve4t73opHZQDLbWh?node-id=10-2",
+      "implementation_target": "React + TypeScript + Tailwind CSS",
+      "suggested_path": "docs/design-system-rules.md",
+      "rules": "Use React functional components with TypeScript props for reusable UI primitives. Use Tailwind CSS utility classes directly and map repeated values into project tokens when available. Preserve Figma node hierarchy as component hierarchy: page frame, navigation, hero/header, filter controls, report preview, side panel, and status footer. Use Inter as the primary font with weights Regular, Medium, Semi Bold, and Bold. Core colors: background #FAFAFA, surface #FFFFFF, text-primary #212121, text-secondary #757575, border #E0E0E0, brand-primary #C8102E, brand-tint #FCE4EC, success #4CAF50, warning #FFC107, danger #F44336, info #2196F3. Use 8px border radius for buttons, cards, filters, and chart containers; use 999px radius only for chips/pills and progress bars. Use spacing based on the visible Figma scale: 4, 6, 8, 10, 12, 14, 16, 18, 20, 24, 32, and 48px. Main desktop screen width is 1440px. Navigation height is 72px with 32px horizontal padding. Content sections stack vertically without overlap. Cards use white fill, #E0E0E0 border, 8px radius, 24px padding, and subtle shadow 0 2px 4px rgba(0,0,0,0.08). Primary buttons use #C8102E background, white text, 14px Semi Bold, 20px horizontal padding, 12px vertical padding, and 8px radius. Secondary buttons use #F5F5F5 or white backgrounds with #212121 or #C8102E text depending on emphasis. Chips use 12px Semi Bold text with 10px horizontal and 6px vertical padding. Use exact Spanish labels from Figma for navigation and UI copy. Keep data-node-id attributes when useful for implementation traceability. For responsive layouts, keep the same content and labels while adapting only layout density: collapse horizontal filter rows into stacked controls on smaller screens, allow cards to wrap, and keep action hierarchy visible."
     }
   },
   "auth_required": false,
   "provider": "codex",
   "return_code": 0,
-  "model": null,
-  "error": "The configured Figma MCP tools do not expose create_design_system_rules in this session, so the action could not be completed without using unsupported tools."
+  "model": null
 }
 ```

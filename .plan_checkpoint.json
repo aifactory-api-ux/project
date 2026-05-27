@@ -2,64 +2,75 @@
   "plan_items": [
     {
       "item_number": 1,
-      "title": "Foundation \u2014 shared types, DTOs, DB schemas, config, utilities",
-      "goal": "Establish all shared code and contracts for the backend microservices.",
+      "title": "Foundation \u2014 shared models, DB schemas, config, utilities",
+      "goal": "Create all shared code and configuration for backend services, including Pydantic and SQLAlchemy models, DB connection logic, shared utilities, and Alembic migration scripts. This includes all models for users, news, sources, feedback, scoring config, enums, and constants. Also includes requirements.txt for all backend dependencies.",
       "files": [
         {
-          "path": "backend/shared/dto/product.dto.ts",
+          "path": "backend/shared/models.py",
           "action": "create",
-          "purpose": ""
+          "purpose": "All Pydantic and SQLAlchemy models: User, NewsSource, NewsItem, Feedback, ScoringConfig, Token, enums/constants."
         },
         {
-          "path": "backend/shared/dto/user.dto.ts",
+          "path": "backend/shared/db.py",
           "action": "create",
-          "purpose": ""
+          "purpose": "Shared SQLAlchemy DB connection logic, session management, and Alembic integration."
         },
         {
-          "path": "backend/shared/dto/order.dto.ts",
+          "path": "backend/shared/utils.py",
           "action": "create",
-          "purpose": ""
-        },
-        {
-          "path": "backend/shared/dto/auth.dto.ts",
-          "action": "create",
-          "purpose": ""
-        },
-        {
-          "path": "backend/shared/utils/jwt.ts",
-          "action": "create",
-          "purpose": ""
-        },
-        {
-          "path": "backend/shared/entities/product.entity.ts",
-          "action": "create",
-          "purpose": ""
-        },
-        {
-          "path": "backend/shared/entities/user.entity.ts",
-          "action": "create",
-          "purpose": ""
-        },
-        {
-          "path": "backend/shared/entities/order.entity.ts",
-          "action": "create",
-          "purpose": ""
+          "purpose": "Shared utility functions (e.g., deduplication, normalization, scoring helpers)."
         }
       ],
       "dependencies": "None",
-      "validation": "- `npm run test` in backend/shared passes all tests",
-      "status": "failed",
+      "validation": "`pytest backend/shared/tests/` passes; `alembic upgrade head` creates all tables; importing models in both services works without error.",
+      "status": "done",
       "role_id": "role-tl",
       "role_category": "technical_lead",
       "wave": 1
     },
     {
       "item_number": 2,
-      "title": "Auth Service \u2014 registration, login, JWT, refresh, user info",
-      "goal": "Implement the authentication service with endpoints:",
-      "files": [],
+      "title": "Auth Service \u2014 registration, login, JWT, user info",
+      "goal": "Implement the authentication microservice with endpoints for user registration (`POST /api/auth/register`), login (`POST /api/auth/login`), and user info (`GET /api/auth/me`). Enforce RBAC, JWT issuance/validation, password hashing, and healthcheck. Use shared models and config from Item 1.",
+      "files": [
+        {
+          "path": "backend/auth-service/main.py",
+          "action": "create",
+          "purpose": "FastAPI app entrypoint, includes `/health` endpoint."
+        },
+        {
+          "path": "backend/auth-service/api/auth.py",
+          "action": "create",
+          "purpose": "Endpoints: `/api/auth/register`, `/api/auth/login`, `/api/auth/me`."
+        },
+        {
+          "path": "backend/auth-service/crud/users.py",
+          "action": "create",
+          "purpose": "User CRUD logic: create, get, authenticate, password hashing."
+        },
+        {
+          "path": "backend/auth-service/models.py",
+          "action": "create",
+          "purpose": "SQLAlchemy models for users (imports from shared/models.py)."
+        },
+        {
+          "path": "backend/auth-service/dependencies.py",
+          "action": "create",
+          "purpose": "FastAPI dependencies: get_current_user, role checks, DB session."
+        },
+        {
+          "path": "backend/auth-service/security.py",
+          "action": "create",
+          "purpose": "JWT encode/decode, password hashing (bcrypt), token utilities."
+        },
+        {
+          "path": "backend/auth-service/start.sh",
+          "action": "create",
+          "purpose": "Wait for DB, run migrations, seed users if empty, start service."
+        }
+      ],
       "dependencies": "Item 1",
-      "validation": "- `docker build .` and `docker run` expose service on 23001",
+      "validation": "`pytest backend/auth-service/tests/` passes; `curl localhost:23002/health` returns status; registration/login/me endpoints work with JWT.",
       "status": "done",
       "role_id": "role-be-auth",
       "role_category": "backend_developer",
@@ -67,133 +78,87 @@
     },
     {
       "item_number": 3,
-      "title": "Product Service \u2014 product CRUD, category filtering",
-      "goal": "Implement the product service with endpoints:",
+      "title": "News Service \u2014 ingestion, deduplication, classification, scoring, CRUD",
+      "goal": "Implement the news microservice with endpoints for news CRUD (`/api/news`, `/api/news/{id}`), source CRUD (`/api/sources`), feedback, and scoring config. Includes ingestion from RSS/APIs, deduplication, semantic classification (LLM API integration), scoring, and healthcheck. Uses shared models and config from Item 1.",
       "files": [
         {
-          "path": "backend/product-service/src/main.ts",
+          "path": "backend/news-service/main.py",
           "action": "create",
-          "purpose": ""
+          "purpose": "FastAPI app entrypoint, includes `/health` endpoint."
         },
         {
-          "path": "backend/product-service/src/app.module.ts",
+          "path": "backend/news-service/api/news.py",
           "action": "create",
-          "purpose": ""
+          "purpose": "Endpoints: `/api/news` (GET/POST), `/api/news/{id}` (GET/PATCH/DELETE), feedback, scoring config."
         },
         {
-          "path": "backend/product-service/src/product.controller.ts",
+          "path": "backend/news-service/api/sources.py",
           "action": "create",
-          "purpose": ""
+          "purpose": "Endpoints: `/api/sources` (GET/POST)."
         },
         {
-          "path": "backend/product-service/src/product.service.ts",
+          "path": "backend/news-service/crud/news.py",
           "action": "create",
-          "purpose": ""
+          "purpose": "News CRUD logic, ingestion, deduplication, classification, scoring."
+        },
+        {
+          "path": "backend/news-service/crud/sources.py",
+          "action": "create",
+          "purpose": "Source CRUD logic."
+        },
+        {
+          "path": "backend/news-service/models.py",
+          "action": "create",
+          "purpose": "SQLAlchemy models for news, sources (imports from shared/models.py)."
+        },
+        {
+          "path": "backend/news-service/dependencies.py",
+          "action": "create",
+          "purpose": "FastAPI dependencies: get_current_user, role checks, DB session."
+        },
+        {
+          "path": "backend/news-service/start.sh",
+          "action": "create",
+          "purpose": "Wait for DB, run migrations, seed news/sources if empty, start service."
         }
       ],
       "dependencies": "Item 1",
-      "validation": "- `docker build .` and `docker run` expose service on 23002",
+      "validation": "`pytest backend/news-service/tests/` passes; `curl localhost:23001/health` returns status; news CRUD and ingestion endpoints work, deduplication and scoring logic tested.",
       "status": "done",
-      "role_id": "role-be-product",
+      "role_id": "role-be-news",
       "role_category": "backend_developer",
       "wave": 2
     },
     {
       "item_number": 4,
-      "title": "Order Service \u2014 order creation, status, history",
-      "goal": "Implement the order service with endpoints:",
-      "files": [
-        {
-          "path": "backend/order-service/src/main.ts",
-          "action": "create",
-          "purpose": ""
-        },
-        {
-          "path": "backend/order-service/src/app.module.ts",
-          "action": "create",
-          "purpose": ""
-        },
-        {
-          "path": "backend/order-service/src/order.controller.ts",
-          "action": "create",
-          "purpose": ""
-        },
-        {
-          "path": "backend/order-service/src/order.service.ts",
-          "action": "create",
-          "purpose": ""
-        }
-      ],
-      "dependencies": "Item 1",
-      "validation": "- `docker build .` and `docker run` expose service on 23003",
-      "status": "done",
-      "role_id": "role-be-order",
-      "role_category": "backend_developer",
-      "wave": 2
-    },
-    {
-      "item_number": 5,
-      "title": "User Service \u2014 user profile, admin user management",
-      "goal": "Implement the user service with endpoints:",
-      "files": [
-        {
-          "path": "backend/user-service/src/main.ts",
-          "action": "create",
-          "purpose": ""
-        },
-        {
-          "path": "backend/user-service/src/app.module.ts",
-          "action": "create",
-          "purpose": ""
-        },
-        {
-          "path": "backend/user-service/src/user.controller.ts",
-          "action": "create",
-          "purpose": ""
-        },
-        {
-          "path": "backend/user-service/src/user.service.ts",
-          "action": "create",
-          "purpose": ""
-        }
-      ],
-      "dependencies": "Item 1",
-      "validation": "- `docker build .` and `docker run` expose service on 23004",
-      "status": "done",
-      "role_id": "role-be-user",
-      "role_category": "backend_developer",
-      "wave": 2
-    },
-    {
-      "item_number": 6,
-      "title": "Infrastructure & Deployment \u2014 orchestration, scripts, docs",
-      "goal": "Provide complete local orchestration and documentation for all backend services.",
+      "title": "Infrastructure & Deployment",
+      "goal": "Provide complete Docker orchestration and documentation for local and production deployment. Includes docker-compose.yml with all services, healthchecks, environment variable templates, run script, ignore files, and architecture docs.",
       "files": [
         {
           "path": "docker-compose.yml",
           "action": "create",
-          "purpose": ""
+          "purpose": "Orchestrates all backend services, PostgreSQL, Redis (if used), with healthchecks and depends_on:service_healthy."
         },
         {
           "path": "run.sh",
           "action": "create",
-          "purpose": ""
+          "purpose": "Validates Docker, builds images, starts all services, waits for healthy, prints access URLs."
         },
         {
           "path": "README.md",
           "action": "create",
-          "purpose": ""
+          "purpose": "Setup instructions, endpoints, troubleshooting, and test commands."
         }
       ],
-      "dependencies": "Items 1\u20135",
-      "validation": "- `./run.sh` completes without errors",
+      "dependencies": "Items 1, 2, 3",
+      "validation": "`./run.sh` completes with all services healthy, endpoints accessible, and seed data present; README instructions work end-to-end.",
       "status": "done",
       "role_id": "role-devops",
       "role_category": "devops_support",
       "wave": 3
     },
     {
-      "item_number": 7,
+      "item_number": 5,
       "title": "Frontend Infrastructure Setup (React 18 + Vite)",
       "goal": "Create ALL foundational React 18 + Vite files required before any page can run. This item MUST be completed first and completely. Includes: package.json, framework config with /api/* proxy, entrypoint, router / app shell with routes for all pages, base HTTP client (RELATIVE URLs ONLY), auth state management, nginx.conf (proxy /api/* \u2192 backend), multi-stage Dockerfile, and frontend service in docker-compose.yml. READ these context files before implementing: `docs/uiux/design-contract.md`, `docs/uiux/api-contract.yaml`, `docs/uiux/component-guide.md`.",
       "design_specs": {
@@ -202,7 +167,7 @@
         "critical_constraint": "NEVER use build-time env vars for the API URL (VITE_API_URL, NEXT_PUBLIC_API_URL, NG_APP_API_URL, etc.). ALL HTTP calls MUST use RELATIVE paths (/api/...). The web server (nginx or framework dev proxy) routes /api/* to the backend container.",
         "proxy_pattern": "Dev: framework config proxy (vite server.proxy, next.config rewrites, angular proxy.conf.json, etc.). Prod: nginx location /api/ { proxy_pass http://backend:23001/api/; }",
         "api_client": "One shared api.ts (or api.js) module that ONLY uses relative paths. All pages/components import from this module \u2014 no direct fetch() calls in UI code.",
-        "pages": "InicioHome, CatlogodeProductos, DetalledeProducto, CarritodeCompras, LoginPage, RegisterPage, ProductListPage, ProductDetailPage, OrderHistoryPage, OrderDetailPage"
+        "pages": "DashboardPrincipal, ListadeNoticias, DetalledeNoticia, ReportesDinmicos, LoginPage, RegisterPage"
       },
       "files": [
         {
@@ -233,7 +198,7 @@
         {
           "path": "frontend/src/App.tsx",
           "action": "create",
-          "purpose": "<Routes> with one <Route> per page: /iniciohome, /catlogodeproductos, /detalledeproducto, /carritodecompras, /login, /register, /productlist, /productdetail, /orderhistory, /orderdetail. Catch-all \u2192 NotFoundPage. Protected routes wrapped in <RequireAuth>."
+          "purpose": "<Routes> with one <Route> per page: /dashboardprincipal, /listadenoticias, /detalledenoticia, /reportesdinmicos, /login, /register. Catch-all \u2192 NotFoundPage. Protected routes wrapped in <RequireAuth>."
         },
         {
           "path": "frontend/src/lib/api.ts",
@@ -269,26 +234,78 @@
       "wave": 4
     },
     {
-      "item_number": 8,
-      "title": "HomePage (Inicio)",
-      "goal": "Implements the Inicio (Home) Figma frame. Screenshot: none",
+      "item_number": 6,
+      "title": "Dashboard Principal Page",
+      "goal": "Implements the Dashboard Principal Figma frame. Screenshot: none",
       "design_specs": {
-        "colors": "primary #F28C28, primary_light #FDBF60, primary_dark #C76A1A, secondary #4A90D9, accent #E85D75, neutral_white #FFFFFF, neutral_light #F5F5F5, neutral_medium #E0E0E0, neutral_dark #333333, neutral_black #1A1A1A",
-        "typography": "h1 32px/700/1.2 #333333, h2 24px/600/1.3 #333333, body large 16px/400/1.5 #333333, button 16px/600/1.2 #FFFFFF",
-        "spacing": "section padding 64px, grid gap 32px, card gap 24px, card padding 24px, between sections 48px",
-        "layout": "vertical stacking of hero, categories, best sellers, testimonials, newsletter; hero uses 2-column grid (image left, text/CTA right) at \u22651024px, stacks on mobile; categories and best sellers in responsive grid (min 280px card, gap 24px); testimonials in horizontal scroll at <768px; newsletter centered with max-width 480px",
-        "components": "Navbar Principal, CTA Button (Primario), Card de Producto, Footer, Input de Formulario, Badge / Etiqueta, Spinner / Loader",
-        "states": "CTA Button hover (bg #C76A1A, elevation 0 4px 16px rgba(0,0,0,0.12)), focus (outline 2px #FDBF60), disabled (bg #E0E0E0, text #BDBDBD); Card hover (shadow elevated), Input focus (border #F28C28), error (border #E74C3C, caption #E74C3C); Spinner animates on loading"
+        "colors": "background #FAFAFA, card surface #FFFFFF, card border #E0E0E0, text primary #212121, text secondary #757575, CTA #C8102E, success #4CAF50, warning #FFC107, danger #F44336, info #2196F3",
+        "typography": "headings Inter 32px/700 (h1), 24px/600 (h2), 20px/600 (h3), 18px/500 (h4); body large 16px/400, medium 14px/400, small 12px/400; label 12px/600 uppercase, caption 11px/400",
+        "spacing": "main content padding 32px, card padding 24px, section gap 32px, grid gap 16px",
+        "layout": "max-width 1440px, sidebar width 240px, navigation height 72px, 2-column grid for main metrics/cards, cards use 8px border-radius and shadow 0 2px 4px rgba(0,0,0,0.08)",
+        "components": "Navegaci\u00f3n Principal, Tarjeta de Noticia, Sem\u00e1foro de Prioridad, Gr\u00e1fico de Barras, Chip / Etiqueta, Bot\u00f3n CTA Primario",
+        "states": "CTA hover darkens to #A00D24, cards elevate on hover (shadow 0 4px 12px rgba(0,0,0,0.12)), sidebar active link bg #FCE4EC, focus outlines #2196F3"
       },
       "files": [
         {
-          "path": "frontend/src/pages/HomePage.tsx",
+          "path": "frontend/src/pages/DashboardPrincipalPage.tsx",
           "action": "create",
-          "purpose": "Home page with hero, featured categories, best sellers, testimonials, newsletter signup"
+          "purpose": "Dashboard landing page with metrics, charts, and news highlights"
         }
       ],
-      "dependencies": "Item 7",
-      "validation": "All specified hex colors present in CSS, all listed components rendered, API-driven product cards visible, CTA and input states visually match, responsive at 768px",
+      "dependencies": "Item 7, Item 10, Item 12",
+      "validation": "All hex colors present in CSS, all Figma components rendered, metrics and charts visible from API data, responsive at 768px, no placeholder text",
+      "status": "done",
+      "role_id": "frontend_developer",
+      "role_category": "frontend",
+      "wave": 5
+    },
+    {
+      "item_number": 7,
+      "title": "Lista de Noticias Page",
+      "goal": "Implements the Lista de Noticias Figma frame. Screenshot: none",
+      "design_specs": {
+        "colors": "background #FAFAFA, card surface #FFFFFF, card border #E0E0E0, text primary #212121, text secondary #757575, CTA #C8102E, semaphore red #F44336, semaphore yellow #FFC107, semaphore green #4CAF50",
+        "typography": "heading Inter 24px/600 (h2), card title 18px/500 (h4), body 14px/400, chip label 12px/600 uppercase, caption 11px/400",
+        "spacing": "page padding 32px, card padding 16px, section gap 24px, grid gap 16px, chip padding 10px horizontal/6px vertical",
+        "layout": "max-width 1440px, sidebar width 240px, cards in responsive grid (3 columns desktop, 1 column mobile), filter bar above list, cards use 8px border-radius and shadow 0 2px 4px rgba(0,0,0,0.08)",
+        "components": "Navegaci\u00f3n Principal, Barra de B\u00fasqueda y Filtros, Tarjeta de Noticia, Sem\u00e1foro de Prioridad, Chip / Etiqueta, Bot\u00f3n CTA Primario",
+        "states": "CTA hover darkens to #A00D24, filter dropdowns highlight border #2196F3 on focus, card hover elevates shadow to 0 4px 12px rgba(0,0,0,0.12), chips have hover bg #F5F5F5"
+      },
+      "files": [
+        {
+          "path": "frontend/src/pages/ListaNoticiasPage.tsx",
+          "action": "create",
+          "purpose": "News listing page with filters and cards"
+        }
+      ],
+      "dependencies": "Item 10, Item 12",
+      "validation": "All hex colors present in CSS, all Figma components rendered, news list from API visible, filters functional, responsive at 768px, no placeholder text",
+      "status": "done",
+      "role_id": "frontend_developer",
+      "role_category": "frontend",
+      "wave": 5
+    },
+    {
+      "item_number": 8,
+      "title": "Detalle de Noticia Page",
+      "goal": "Implements the Detalle de Noticia Figma frame. Screenshot: none",
+      "design_specs": {
+        "colors": "background #FAFAFA, card surface #FFFFFF, card border #E0E0E0, text primary #212121, text secondary #757575, CTA #C8102E, semaphore red #F44336, semaphore yellow #FFC107, semaphore green #4CAF50",
+        "typography": "heading Inter 24px/600 (h2), news title 20px/600 (h3), body 16px/400, chip label 12px/600 uppercase, caption 11px/400",
+        "spacing": "page padding 32px, card padding 24px, section gap 24px, chip padding 10px horizontal/6px vertical",
+        "layout": "max-width 800px centered, sidebar width 240px, card uses 8px border-radius and shadow 0 2px 4px rgba(0,0,0,0.08), chips inline below title, feedback buttons right-aligned",
+        "components": "Navegaci\u00f3n Principal, Tarjeta de Noticia, Sem\u00e1foro de Prioridad, Chip / Etiqueta, Bot\u00f3n CTA Primario",
+        "states": "CTA hover darkens to #A00D24, feedback buttons highlight on hover (#F5F5F5 bg), chips hover bg #F5F5F5, focus outlines #2196F3"
+      },
+      "files": [
+        {
+          "path": "frontend/src/pages/DetalleNoticiaPage.tsx",
+          "action": "create",
+          "purpose": "News detail page with full article, tags, and feedback"
+        }
+      ],
+      "dependencies": "Item 10, Item 12",
+      "validation": "All hex colors present in CSS, all Figma components rendered, news detail from API visible, feedback buttons functional, responsive at 768px, no placeholder text",
       "status": "done",
       "role_id": "frontend_developer",
       "role_category": "frontend",
@@ -296,25 +313,25 @@
     },
     {
       "item_number": 9,
-      "title": "ProductCatalogPage (Cat\u00e1logo de Productos)",
-      "goal": "Implements the Cat\u00e1logo de Productos Figma frame. Screenshot: none",
+      "title": "Reportes Din\u00e1micos Page",
+      "goal": "Implements the Reportes Din\u00e1micos Figma frame. Screenshot: none",
       "design_specs": {
-        "colors": "primary #F28C28, primary_dark #C76A1A, secondary #4A90D9, neutral_white #FFFFFF, neutral_light #F5F5F5, neutral_medium #E0E0E0, neutral_dark #333333, accent #E85D75",
-        "typography": "h1 32px/700/1.2 #333333, h2 24px/600/1.3 #333333, body large 16px/400/1.5 #333333, button 16px/600/1.2 #FFFFFF, caption 11px/400/1.3 #333333",
-        "spacing": "sidebar width 240px, grid gap 24px, card padding 24px, filter section gap 16px, section padding 64px, pagination gap 16px",
-        "layout": "2-column layout (sidebar filters left, product grid right) at \u22651024px; sidebar collapses to top filter bar on mobile; product grid responsive (min 280px card, gap 24px); pagination or infinite scroll at bottom",
-        "components": "Navbar Principal, Card de Producto, Input de Formulario, Breadcrumb, Rating Stars, Badge / Etiqueta, Spinner / Loader, Footer",
-        "states": "Card hover (shadow elevated), Add to cart button hover (bg #C76A1A), focus (outline 2px #FDBF60), disabled (bg #E0E0E0, text #BDBDBD); filter input focus (border #F28C28), error (border #E74C3C); Spinner animates on loading"
+        "colors": "background #FAFAFA, card surface #FFFFFF, card border #E0E0E0, text primary #212121, text secondary #757575, CTA #C8102E, success #4CAF50, warning #FFC107, danger #F44336, info #2196F3",
+        "typography": "heading Inter 24px/600 (h2), section title 18px/500 (h4), body 14px/400, label 12px/600 uppercase, caption 11px/400",
+        "spacing": "page padding 32px, card padding 24px, section gap 32px, grid gap 16px",
+        "layout": "max-width 1440px, sidebar width 240px, cards in 2-column grid, filters stacked above table, table uses sticky headers, pagination below",
+        "components": "Navegaci\u00f3n Principal, Barra de B\u00fasqueda y Filtros, Tabla de Datos, Bot\u00f3n CTA Primario, Chip / Etiqueta",
+        "states": "CTA hover darkens to #A00D24, table row hover bg #F5F5F5, filter dropdowns highlight border #2196F3 on focus, chips hover bg #F5F5F5"
       },
       "files": [
         {
-          "path": "frontend/src/pages/ProductCatalogPage.tsx",
+          "path": "frontend/src/pages/ReportesDinamicosPage.tsx",
           "action": "create",
-          "purpose": "Product catalog with filters, sorting, grid, and pagination/infinite scroll"
+          "purpose": "Dynamic reports page with filters, table, and export actions"
         }
       ],
-      "dependencies": "Item 7",
-      "validation": "All specified hex colors present in CSS, all listed components rendered, API-driven product grid and filters visible, filter and button states visually match, responsive at 768px",
+      "dependencies": "Item 10, Item 12",
+      "validation": "All hex colors present in CSS, all Figma components rendered, table data from API visible, filters and pagination functional, responsive at 768px, no placeholder text",
       "status": "done",
       "role_id": "frontend_developer",
       "role_category": "frontend",
@@ -322,78 +339,78 @@
     },
     {
       "item_number": 10,
-      "title": "ProductDetailPage (Detalle de Producto)",
-      "goal": "Implements the Detalle de Producto Figma frame. Screenshot: none",
+      "title": "News API Hook",
+      "goal": "Provide typed hooks for News API resource group (GET/POST/PATCH/DELETE /api/news, /api/news/{id})",
       "design_specs": {
-        "colors": "primary #F28C28, primary_dark #C76A1A, secondary #4A90D9, accent #E85D75, neutral_white #FFFFFF, neutral_light #F5F5F5, neutral_medium #E0E0E0, neutral_dark #333333",
-        "typography": "h1 32px/700/1.2 #333333, h2 24px/600/1.3 #333333, h3 20px/600/1.4 #333333, body large 16px/400/1.5 #333333, button 16px/600/1.2 #FFFFFF, caption 11px/400/1.3 #333333",
-        "spacing": "gallery gap 16px, section gap 48px, card padding 24px, between info and gallery 32px, review section gap 24px",
-        "layout": "2-column layout (gallery left, info right) at \u22651024px, stacks on mobile; gallery with main image and thumbnails; info column with name, price, description, quantity selector, add to cart button, badges, reviews below",
-        "components": "Navbar Principal, Card de Producto, CTA Button (Primario), Rating Stars, Badge / Etiqueta, Input de Formulario, Breadcrumb, Modal / Di\u00e1logo, Spinner / Loader, Footer",
-        "states": "Add to cart button hover (bg #C76A1A), focus (outline 2px #FDBF60), disabled (bg #E0E0E0, text #BDBDBD); quantity input focus (border #F28C28), error (border #E74C3C); Modal overlay (bg rgba(0,0,0,0.2)), Spinner animates on loading"
+        "colors": "n/a (logic only)",
+        "typography": "n/a",
+        "spacing": "n/a",
+        "layout": "n/a",
+        "components": "n/a",
+        "states": "loading, error, success for all API calls"
       },
       "files": [
         {
-          "path": "frontend/src/pages/ProductDetailPage.tsx",
+          "path": "frontend/src/hooks/useNews.ts",
           "action": "create",
-          "purpose": "Product detail with gallery, info, add to cart, reviews"
+          "purpose": "Typed React hooks for news CRUD and list"
         }
       ],
-      "dependencies": "Item 7",
-      "validation": "All specified hex colors present in CSS, all listed components rendered, API-driven product data and reviews visible, modal and button states visually match, responsive at 768px",
+      "dependencies": "None",
+      "validation": "All API calls use relative paths, hooks expose { data, loading, error }, no mock data, errors surfaced to UI",
       "status": "done",
       "role_id": "frontend_developer",
       "role_category": "frontend",
-      "wave": 5
+      "wave": 4
     },
     {
       "item_number": 11,
-      "title": "CartPage (Carrito de Compras)",
-      "goal": "Implements the Carrito de Compras Figma frame. Screenshot: none",
+      "title": "News Sources API Hook",
+      "goal": "Provide typed hooks for News Sources API resource group (GET/POST /api/sources)",
       "design_specs": {
-        "colors": "primary #F28C28, primary_dark #C76A1A, neutral_white #FFFFFF, neutral_light #F5F5F5, neutral_medium #E0E0E0, neutral_dark #333333, accent #E85D75, success #27AE60, error #E74C3C",
-        "typography": "h1 32px/700/1.2 #333333, h2 24px/600/1.3 #333333, body large 16px/400/1.5 #333333, button 16px/600/1.2 #FFFFFF, caption 11px/400/1.3 #333333",
-        "spacing": "section padding 64px, cart item gap 24px, summary card padding 24px, between list and summary 48px",
-        "layout": "2-column layout (cart items left, order summary right) at \u22651024px, stacks on mobile; cart items in vertical list with image, name, price, quantity, subtotal; summary card with subtotal, shipping, total, CTA button",
-        "components": "Navbar Principal, Card de Producto, CTA Button (Primario), Input de Formulario, Badge / Etiqueta, Modal / Di\u00e1logo, Spinner / Loader, Footer",
-        "states": "Proceed to checkout button hover (bg #C76A1A), focus (outline 2px #FDBF60), disabled (bg #E0E0E0, text #BDBDBD); quantity input focus (border #F28C28), error (border #E74C3C); Modal overlay (bg rgba(0,0,0,0.2)), Spinner animates on loading"
+        "colors": "n/a (logic only)",
+        "typography": "n/a",
+        "spacing": "n/a",
+        "layout": "n/a",
+        "components": "n/a",
+        "states": "loading, error, success for all API calls"
       },
       "files": [
         {
-          "path": "frontend/src/pages/CartPage.tsx",
+          "path": "frontend/src/hooks/useNewsSources.ts",
           "action": "create",
-          "purpose": "Shopping cart with item list, summary, and checkout CTA"
+          "purpose": "Typed React hooks for news sources CRUD and list"
         }
       ],
-      "dependencies": "Item 7",
-      "validation": "All specified hex colors present in CSS, all listed components rendered, API-driven cart data visible, modal and button states visually match, responsive at 768px",
+      "dependencies": "None",
+      "validation": "All API calls use relative paths, hooks expose { data, loading, error }, no mock data, errors surfaced to UI",
       "status": "done",
       "role_id": "frontend_developer",
       "role_category": "frontend",
-      "wave": 5
+      "wave": 4
     },
     {
       "item_number": 12,
-      "title": "frontend/src/styles/tokens.ts",
-      "goal": "Centralize all design tokens for colors, typography, spacing, border radius, and shadows as specified in the global design context.",
+      "title": "Shared Design Tokens File",
+      "goal": "Provide a single source of truth for all design tokens (colors, typography, spacing, radii, shadows, icon sizes, motion)",
       "design_specs": {
-        "colors": "primary #F28C28, primary_light #FDBF60, primary_dark #C76A1A, secondary #4A90D9, secondary_light #7AB3E8, secondary_dark #2C6FAC, accent #E85D75, neutral_white #FFFFFF, neutral_light #F5F5F5, neutral_medium #E0E0E0, neutral_dark #333333, neutral_black #1A1A1A, success #27AE60, warning #F39C12, error #E74C3C, info #3498DB",
-        "typography": "font_family 'Inter', sans-serif; h1 32px/700/1.2, h2 24px/600/1.3, h3 20px/600/1.4, h4 18px/500/1.4, body large 16px/400/1.5, body regular 14px/400/1.5, body small 12px/400/1.4, button 16px/600/1.2, caption 11px/400/1.3",
-        "spacing": "xs 4px, sm 8px, md 16px, lg 24px, xl 32px, xxl 48px, section 64px",
+        "colors": "primary #C8102E, primary_dark #A00D24, primary_light #FCE4EC, secondary #4A4A4A, secondary_light #F5F5F5, background #FFFFFF, surface #FAFAFA, text_primary #212121, text_secondary #757575, text_on_primary #FFFFFF, border #E0E0E0, success #4CAF50, warning #FFC107, danger #F44336, info #2196F3, semaphore_red #F44336, semaphore_yellow #FFC107, semaphore_green #4CAF50",
+        "typography": "font_family 'Inter, sans-serif', h1 32px/700/1.2, h2 24px/600/1.3, h3 20px/600/1.4, h4 18px/500/1.4, body large 16px/400/1.5, medium 14px/400/1.5, small 12px/400/1.4, label 12px/600/0.5/uppercase, caption 11px/400/1.3",
+        "spacing": "xs 4px, sm 8px, md 16px, lg 24px, xl 32px, xxl 48px",
         "border_radius": "sm 4px, md 8px, lg 12px, xl 16px, full 9999px",
-        "shadows": "card \"0 2px 8px rgba(0,0,0,0.08)\", elevated \"0 4px 16px rgba(0,0,0,0.12)\", modal \"0 8px 32px rgba(0,0,0,0.2)\"",
-        "icon/image_style": "2px linear icons, rounded corners, product images on white/transparent with soft shadow, cat paw icons as decor",
-        "motion": "transitions 0.2s\u20130.3s for hover/focus, subtle spinner animation, button microinteractions (color/elevation)"
+        "shadows": "card '0 2px 4px rgba(0,0,0,0.08)', elevated '0 4px 12px rgba(0,0,0,0.12)', modal '0 8px 24px rgba(0,0,0,0.16)'",
+        "iconography": "outline, size_sm 16px, size_md 20px, size_lg 24px",
+        "motion": "duration_fast 150ms, duration_normal 300ms, easing 'ease-in-out'"
       },
       "files": [
         {
           "path": "frontend/src/styles/tokens.ts",
           "action": "create",
-          "purpose": "Exports all design tokens as JS/TS objects for use in styled components or CSS-in-JS"
+          "purpose": "Export all design tokens as JS/TS objects"
         }
       ],
       "dependencies": "None",
-      "validation": "All tokens present with exact values, no missing or extra tokens, file imported in at least one page/component",
+      "validation": "All tokens present with exact values, no missing or extra keys, used by all components",
       "status": "done",
       "role_id": "frontend_developer",
       "role_category": "frontend",
@@ -401,75 +418,6 @@
     },
     {
       "item_number": 13,
-      "title": "frontend/src/hooks/useProducts.ts",
-      "goal": "Provide a hook for fetching product lists and details from `/api/products` and `/api/products/:id`.",
-      "design_specs": {
-        "exposes": "`{ data, loading, error }` for product list and single product fetch",
-        "uses": "fetches from `/api/products` and `/api/products/:id` (relative paths only)",
-        "handles": "loading state (Spinner / Loader), error state (error message)"
-      },
-      "files": [
-        {
-          "path": "frontend/src/hooks/useProducts.ts",
-          "action": "create",
-          "purpose": "React hook for product API"
-        }
-      ],
-      "dependencies": "None",
-      "validation": "Returns correct data shape, loading and error states observable, no absolute URLs, used in at least one page",
-      "status": "done",
-      "role_id": "frontend_developer",
-      "role_category": "frontend",
-      "wave": 4
-    },
-    {
-      "item_number": 14,
-      "title": "frontend/src/hooks/useOrders.ts",
-      "goal": "Provide a hook for fetching and creating orders from `/api/orders` and `/api/orders/:id`.",
-      "design_specs": {
-        "exposes": "`{ data, loading, error }` for order list and single order fetch, and order creation",
-        "uses": "fetches from `/api/orders` and `/api/orders/:id` (relative paths only)",
-        "handles": "loading state (Spinner / Loader), error state (error message)"
-      },
-      "files": [
-        {
-          "path": "frontend/src/hooks/useOrders.ts",
-          "action": "create",
-          "purpose": "React hook for order API"
-        }
-      ],
-      "dependencies": "None",
-      "validation": "Returns correct data shape, loading and error states observable, no absolute URLs, used in at least one page",
-      "status": "done",
-      "role_id": "frontend_developer",
-      "role_category": "frontend",
-      "wave": 4
-    },
-    {
-      "item_number": 15,
-      "title": "frontend/src/hooks/useAuth.ts",
-      "goal": "Provide a hook for authentication (login, register, refresh, me) using `/api/auth/*` endpoints.",
-      "design_specs": {
-        "exposes": "`{ user, loading, error, login(), register(), refresh(), logout() }`",
-        "uses": "fetches from `/api/auth/login`, `/api/auth/register`, `/api/auth/refresh`, `/api/auth/me` (relative paths only)",
-        "handles": "loading state (Spinner / Loader), error state (error message)"
-      },
-      "files": [
-        {
-          "path": "frontend/src/hooks/useAuth.ts",
-          "action": "create",
-          "purpose": "React hook for authentication API"
-        }
-      ],
-      "dependencies": "None",
-      "validation": "Returns correct data shape, loading and error states observable, no absolute URLs, used in at least one page",
-      "status": "done",
-      "role_id": "frontend_developer",
-      "role_category": "frontend",
-      "wave": 4
-    },
-    {
-      "item_number": 16,
       "title": "Frontend E2E Tests \u2014 Full-Stack Integration",
       "goal": "Write Playwright E2E tests that drive real browser UI events and verify correct backend API responses. RULES: (1) Each test navigates to a real page. (2) Uses page.click()/fill()/select() to trigger actions. (3) Uses page.waitForResponse() to intercept and assert the correct API endpoint was called with correct payload. (4) Asserts backend response data appears in DOM. NO MOCKS \u2014 tests hit the real backend via docker-compose. API contract at `docs/uiux/api-contract.yaml`.",
       "design_specs": {
@@ -485,22 +433,12 @@
           "purpose": "Register new user \u2192 intercept POST /api/auth/register, assert 201. Login \u2192 intercept POST /api/auth/login, assert token stored in localStorage. Access protected route \u2192 assert Authorization header sent. Logout \u2192 assert localStorage cleared."
         },
         {
-          "path": "frontend/e2e/products.spec.ts",
-          "action": "create",
-          "purpose": "Load product list \u2192 waitForResponse(/\\/api\\/products/), assert items rendered. Click product card \u2192 waitForResponse(/\\/api\\/products\\/.+/), assert detail shown. Search/filter if UI has it \u2192 assert query params sent."
-        },
-        {
-          "path": "frontend/e2e/checkout.spec.ts",
-          "action": "create",
-          "purpose": "Full checkout flow: add item \u2192 go to cart \u2192 click checkout \u2192 waitForResponse(/\\/api\\/orders/), assert POST body has cart items. Order history \u2192 waitForResponse GET /api/orders, assert list rendered. Order detail \u2192 assert GET /api/orders/:id data shown."
-        },
-        {
           "path": "frontend/playwright.config.ts",
           "action": "create",
           "purpose": "Playwright config: baseURL='http://localhost:3000', testDir='./e2e', timeout=30000. Reference docs/uiux/api-contract.yaml for endpoint paths. No webServer block \u2014 assume docker-compose up is run externally."
         }
       ],
-      "dependencies": "Item 15",
+      "dependencies": "Item 12",
       "validation": "playwright.config.ts exists with baseURL. Each spec file imports from @playwright/test only \u2014 no MSW, no fetch-mock. Tests use page.waitForResponse() to assert API calls \u2014 not just page.goto(). No hardcoded http://localhost:PORT in test assertions \u2014 use baseURL. Auth spec asserts localStorage contains token after login.",
       "status": "done",
       "role_id": "frontend_developer",
@@ -509,8 +447,8 @@
     },
     {
       "item_number": "fix-integration-1",
-      "title": "Integration fix 1: Contract defines POST /api/auth/login but no matching backend route fo",
-      "goal": "Contract defines POST /api/auth/login but no matching backend route found\n\nIMPORTANT: After fixing, verify the fix is correct by re-reading the affected files and confirming the issue is fully resolved \u2014 do not leave partial fixes.",
+      "title": "Integration fix 1: Contract defines GET /api/news but no matching backend route found",
+      "goal": "Contract defines GET /api/news but no matching backend route found\n\nIMPORTANT: After fixing, verify the fix is correct by re-reading the affected files and confirming the issue is fully resolved \u2014 do not leave partial fixes.",
       "files": [],
       "dependencies": "All prior items",
       "validation": "All frontend API calls use consistent prefix pattern; relative imports resolve correctly; npm run build exits with code 0.",
@@ -520,8 +458,8 @@
     },
     {
       "item_number": "fix-integration-2",
-      "title": "Integration fix 2: Contract defines GET /api/auth/me but no matching backend route found",
-      "goal": "Contract defines GET /api/auth/me but no matching backend route found\n\nIMPORTANT: After fixing, verify the fix is correct by re-reading the affected files and confirming the issue is fully resolved \u2014 do not leave partial fixes.",
+      "title": "Integration fix 2: Contract defines POST /api/news but no matching backend route found",
+      "goal": "Contract defines POST /api/news but no matching backend route found\n\nIMPORTANT: After fixing, verify the fix is correct by re-reading the affected files and confirming the issue is fully resolved \u2014 do not leave partial fixes.",
       "files": [],
       "dependencies": "All prior items",
       "validation": "All frontend API calls use consistent prefix pattern; relative imports resolve correctly; npm run build exits with code 0.",
@@ -531,8 +469,8 @@
     },
     {
       "item_number": "fix-integration-3",
-      "title": "Integration fix 3: Contract defines POST /api/auth/refresh but no matching backend route ",
-      "goal": "Contract defines POST /api/auth/refresh but no matching backend route found\n\nIMPORTANT: After fixing, verify the fix is correct by re-reading the affected files and confirming the issue is fully resolved \u2014 do not leave partial fixes.",
+      "title": "Integration fix 3: Contract defines GET /api/sources but no matching backend route found",
+      "goal": "Contract defines GET /api/sources but no matching backend route found\n\nIMPORTANT: After fixing, verify the fix is correct by re-reading the affected files and confirming the issue is fully resolved \u2014 do not leave partial fixes.",
       "files": [],
       "dependencies": "All prior items",
       "validation": "All frontend API calls use consistent prefix pattern; relative imports resolve correctly; npm run build exits with code 0.",
@@ -542,8 +480,8 @@
     },
     {
       "item_number": "fix-integration-4",
-      "title": "Integration fix 4: Contract defines POST /api/auth/register but no matching backend route",
-      "goal": "Contract defines POST /api/auth/register but no matching backend route found\n\nIMPORTANT: After fixing, verify the fix is correct by re-reading the affected files and confirming the issue is fully resolved \u2014 do not leave partial fixes.",
+      "title": "Integration fix 4: Contract defines POST /api/sources but no matching backend route found",
+      "goal": "Contract defines POST /api/sources but no matching backend route found\n\nIMPORTANT: After fixing, verify the fix is correct by re-reading the affected files and confirming the issue is fully resolved \u2014 do not leave partial fixes.",
       "files": [],
       "dependencies": "All prior items",
       "validation": "All frontend API calls use consistent prefix pattern; relative imports resolve correctly; npm run build exits with code 0.",
@@ -553,8 +491,8 @@
     },
     {
       "item_number": "fix-integration-5",
-      "title": "Integration fix 5: Contract defines GET /api/orders but no matching backend route found",
-      "goal": "Contract defines GET /api/orders but no matching backend route found\n\nIMPORTANT: After fixing, verify the fix is correct by re-reading the affected files and confirming the issue is fully resolved \u2014 do not leave partial fixes.",
+      "title": "Integration fix 5: Frontend build failed with 2 TypeScript error(s) in frontend/ director",
+      "goal": "Frontend build failed with 2 TypeScript error(s) in frontend/ directory. Fix ALL TypeScript errors so `npm run build` passes with exit code 0. Common causes:\n  - Missing esModuleInterop/allowSyntheticDefaultImports in tsconfig.json\n  - Import path resolves to non-existent file (wrong '../' depth)\n  - Missing type annotations or incorrect prop types\n  - Undefined variables or missing imports\nBuild output (last 2000 chars):\n```\n\n> daily-pulse-frontend@1.0.0 build\n> tsc && vite build\n\nsrc/pages/ReportesDinamicosPage.tsx(4,1): error TS6133: 'NewsItem' is declared but its value is never read.\nsrc/pages/ReportesDinamicosPage.tsx(151,43): error TS2339: Property 'relevance_score' does not exist on type 'NewsItem'.\n\n```\n\nIMPORTANT: After fixing, verify the fix is correct by re-reading the affected files and confirming the issue is fully resolved \u2014 do not leave partial fixes.",
       "files": [],
       "dependencies": "All prior items",
       "validation": "All frontend API calls use consistent prefix pattern; relative imports resolve correctly; npm run build exits with code 0.",
@@ -565,6 +503,6 @@
   ],
   "qa_sync_completed": true,
   "integration_check_done": true,
-  "thread_id": "run-3682aabb-39b6-4afb-a7c4-37b3bd51d0c8",
-  "timestamp": 1779815709.369705
+  "thread_id": "run-da6be561-bde8-4b5d-86df-dc2213423436",
+  "timestamp": 1779841291.7133296
 }

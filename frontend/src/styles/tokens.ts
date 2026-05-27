@@ -1,24 +1,26 @@
 export const tokens = {
   colors: {
-    primary: '#F28C28',
-    primary_light: '#FDBF60',
-    primary_dark: '#C76A1A',
-    secondary: '#4A90D9',
-    secondary_light: '#7AB3E8',
-    secondary_dark: '#2C6FAC',
-    accent: '#E85D75',
-    neutral_white: '#FFFFFF',
-    neutral_light: '#F5F5F5',
-    neutral_medium: '#E0E0E0',
-    neutral_dark: '#333333',
-    neutral_black: '#1A1A1A',
-    success: '#27AE60',
-    warning: '#F39C12',
-    error: '#E74C3C',
-    info: '#3498DB',
+    primary: '#C8102E',
+    primary_dark: '#A00D24',
+    primary_light: '#FCE4EC',
+    secondary: '#4A4A4A',
+    secondary_light: '#F5F5F5',
+    background: '#FFFFFF',
+    surface: '#FAFAFA',
+    text_primary: '#212121',
+    text_secondary: '#757575',
+    text_on_primary: '#FFFFFF',
+    border: '#E0E0E0',
+    success: '#4CAF50',
+    warning: '#FFC107',
+    danger: '#F44336',
+    info: '#2196F3',
+    semaphore_red: '#F44336',
+    semaphore_yellow: '#FFC107',
+    semaphore_green: '#4CAF50',
   },
   typography: {
-    font_family: "'Inter', sans-serif",
+    font_family: 'Inter, sans-serif',
     headings: {
       h1: {
         size: 32,
@@ -47,7 +49,7 @@ export const tokens = {
         weight: 400,
         line_height: 1.5,
       },
-      regular: {
+      medium: {
         size: 14,
         weight: 400,
         line_height: 1.5,
@@ -58,10 +60,11 @@ export const tokens = {
         line_height: 1.4,
       },
     },
-    button: {
-      size: 16,
+    label: {
+      size: 12,
       weight: 600,
-      line_height: 1.2,
+      letter_spacing: 0.5,
+      text_transform: 'uppercase',
     },
     caption: {
       size: 11,
@@ -76,7 +79,6 @@ export const tokens = {
     lg: 24,
     xl: 32,
     xxl: 48,
-    section: 64,
   },
   border_radius: {
     sm: 4,
@@ -86,10 +88,19 @@ export const tokens = {
     full: 9999,
   },
   shadows: {
-    card: '0 2px 8px rgba(0,0,0,0.08)',
-    elevated: '0 4px 16px rgba(0,0,0,0.12)',
-    modal: '0 8px 32px rgba(0,0,0,0.2)',
+    card: '0 2px 4px rgba(0,0,0,0.08)',
+    elevated: '0 4px 12px rgba(0,0,0,0.12)',
+    modal: '0 8px 24px rgba(0,0,0,0.16)',
   },
-  icon_image_style: 'Iconos lineales con grosor de 2px, esquinas redondeadas. Imágenes de productos con fondo blanco o transparente, recortadas limpiamente, con sombra suave. Uso de iconos de huella de gato como elemento decorativo.',
-  motion_interaction: 'Transiciones suaves de 0.2s a 0.3s para hover y focus. Animaciones de carga sutiles (spinner con huella). Microinteracciones en botones (cambio de color, elevación).',
+  iconography: {
+    style: 'outline',
+    size_sm: 16,
+    size_md: 20,
+    size_lg: 24,
+  },
+  motion: {
+    duration_fast: 150,
+    duration_normal: 300,
+    easing: 'ease-in-out',
+  },
 };

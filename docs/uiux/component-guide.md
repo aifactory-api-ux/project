@@ -7,25 +7,27 @@ Quick reference for components and design tokens. Use exact names — do not ren
 ```json
 {
   "colors": {
-    "primary": "#F28C28",
-    "primary_light": "#FDBF60",
-    "primary_dark": "#C76A1A",
-    "secondary": "#4A90D9",
-    "secondary_light": "#7AB3E8",
-    "secondary_dark": "#2C6FAC",
-    "accent": "#E85D75",
-    "neutral_white": "#FFFFFF",
-    "neutral_light": "#F5F5F5",
-    "neutral_medium": "#E0E0E0",
-    "neutral_dark": "#333333",
-    "neutral_black": "#1A1A1A",
-    "success": "#27AE60",
-    "warning": "#F39C12",
-    "error": "#E74C3C",
-    "info": "#3498DB"
+    "primary": "#C8102E",
+    "primary_dark": "#A00D24",
+    "primary_light": "#FCE4EC",
+    "secondary": "#4A4A4A",
+    "secondary_light": "#F5F5F5",
+    "background": "#FFFFFF",
+    "surface": "#FAFAFA",
+    "text_primary": "#212121",
+    "text_secondary": "#757575",
+    "text_on_primary": "#FFFFFF",
+    "border": "#E0E0E0",
+    "success": "#4CAF50",
+    "warning": "#FFC107",
+    "danger": "#F44336",
+    "info": "#2196F3",
+    "semaphore_red": "#F44336",
+    "semaphore_yellow": "#FFC107",
+    "semaphore_green": "#4CAF50"
   },
   "typography": {
-    "font_family": "'Inter', sans-serif",
+    "font_family": "Inter, sans-serif",
     "headings": {
       "h1": {
         "size": 32,
@@ -54,7 +56,7 @@ Quick reference for components and design tokens. Use exact names — do not ren
         "weight": 400,
         "line_height": 1.5
       },
-      "regular": {
+      "medium": {
         "size": 14,
         "weight": 400,
         "line_height": 1.5
@@ -65,10 +67,11 @@ Quick reference for components and design tokens. Use exact names — do not ren
         "line_height": 1.4
       }
     },
-    "button": {
-      "size": 16,
+    "label": {
+      "size": 12,
       "weight": 600,
-      "line_height": 1.2
+      "letter_spacing": 0.5,
+      "text_transform": "uppercase"
     },
     "caption": {
       "size": 11,
@@ -82,8 +85,7 @@ Quick reference for components and design tokens. Use exact names — do not ren
     "md": 16,
     "lg": 24,
     "xl": 32,
-    "xxl": 48,
-    "section": 64
+    "xxl": 48
   },
   "border_radius": {
     "sm": 4,
@@ -93,24 +95,33 @@ Quick reference for components and design tokens. Use exact names — do not ren
     "full": 9999
   },
   "shadows": {
-    "card": "0 2px 8px rgba(0,0,0,0.08)",
-    "elevated": "0 4px 16px rgba(0,0,0,0.12)",
-    "modal": "0 8px 32px rgba(0,0,0,0.2)"
+    "card": "0 2px 4px rgba(0,0,0,0.08)",
+    "elevated": "0 4px 12px rgba(0,0,0,0.12)",
+    "modal": "0 8px 24px rgba(0,0,0,0.16)"
   },
-  "icon_image_style": "Iconos lineales con grosor de 2px, esquinas redondeadas. Im\u00e1genes de productos con fondo blanco o transparente, recortadas limpiamente, con sombra suave. Uso de iconos de huella de gato como elemento decorativo.",
-  "motion_interaction": "Transiciones suaves de 0.2s a 0.3s para hover y focus. Animaciones de carga sutiles (spinner con huella). Microinteracciones en botones (cambio de color, elevaci\u00f3n)."
+  "iconography": {
+    "style": "outline",
+    "size_sm": 16,
+    "size_md": 20,
+    "size_lg": 24
+  },
+  "motion": {
+    "duration_fast": 150,
+    "duration_normal": 300,
+    "easing": "ease-in-out"
+  }
 }
 ```
 
 ## Available Components
 
-- **Navbar Principal**: Barra de navegación superior fija con logo, enlaces a categorías, icono de carrito con contador, y menú de usuario (iniciar sesión/perfil). Responsive: se convierte en menú hamburguesa en móvil.
-- **CTA Button (Primario)**: Botón principal con fondo primary, texto blanco, border-radius md, hover con primary_dark. Usado para 'Añadir al carrito', 'Comprar ahora', 'Finalizar pedido'.
-- **Card de Producto**: Tarjeta con imagen del producto, nombre, precio, valoración (estrellas), y botón de añadir al carrito. Sombra card, border-radius lg. Hover eleva la sombra.
-- **Input de Formulario**: Campo de texto con borde neutral_medium, focus con primary, label flotante o superior. Incluye estado de error con mensaje.
-- **Footer**: Pie de página con enlaces rápidos, información de contacto, redes sociales, y copyright. Fondo neutral_dark, texto blanco.
-- **Breadcrumb**: Navegación de migas de pan para páginas internas (ej. Inicio > Catálogo > Producto).
-- **Rating Stars**: Componente de valoración con estrellas interactivas (rellenas/vacías) y puntuación numérica.
-- **Modal / Diálogo**: Ventana modal con overlay, título, contenido, y botones de acción. Usado para confirmaciones o alertas.
-- **Badge / Etiqueta**: Etiqueta pequeña para indicar descuento, nuevo, oferta. Fondo accent o primary, texto blanco.
-- **Spinner / Loader**: Indicador de carga circular con icono de huella de gato animado.
+- **Navegación Principal**: Barra lateral izquierda colapsable con iconos y etiquetas. Incluye logo de Cencosud, enlaces a Dashboard, Noticias, Reportes, Configuración, KPIs, Perfil. Indicador de página activa con color primario.
+- **Botón CTA Primario**: Fondo rojo Cencosud (#C8102E), texto blanco, border-radius 8px, padding 12px 24px, hover más oscuro, transición suave. Usado para acciones principales como 'Generar Reporte', 'Aplicar Filtros', 'Guardar Configuración'.
+- **Tarjeta de Noticia**: Contenedor con sombra card, border-radius 8px, padding 16px. Incluye: indicador de semáforo (círculo rojo/amarillo/verde), título de noticia (h4), fuente y fecha (caption), snippet (body small), etiquetas de país y categoría (chips), botón de feedback (útil/poco útil).
+- **Semáforo de Prioridad**: Indicador visual circular de 12px de diámetro con color según prioridad: rojo (#F44336) para alta, amarillo (#FFC107) para media, verde (#4CAF50) para baja. Puede incluir tooltip con el score numérico.
+- **Chip / Etiqueta**: Pequeño contenedor redondeado con texto y color de fondo suave. Usado para país (ej. Chile, Argentina) y categoría (ej. Regulación, Competencia).
+- **Barra de Búsqueda y Filtros**: Input de búsqueda con icono de lupa, acompañado de dropdowns para filtrar por país, categoría, rango de score, fecha. Botón de aplicar y limpiar.
+- **Tabla de Datos**: Tabla responsive con columnas: título, fuente, país, score, semáforo, fecha, acciones. Filas alternadas con color de fondo. Encabezados fijos. Paginación inferior.
+- **Gráfico / Chart**: Componente de visualización de datos (barras, líneas, dona) usando colores de la paleta. Incluye leyenda y tooltip interactivo.
+- **Modal / Diálogo**: Ventana emergente centrada con overlay semitransparente. Título, contenido, botones de acción (primario y secundario). Cierre con X o clic fuera.
+- **Formulario de Configuración**: Grupo de campos con etiquetas, inputs, sliders, checkboxes, botones de guardar/cancelar. Validación en línea.

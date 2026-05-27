@@ -1,160 +1,241 @@
-# 🐱 CatShop - E-Commerce Platform for Cat Products
+# Daily Pulse - News Intelligence Platform
 
-A microservices-based e-commerce platform specializing in cat products, built with NestJS, React, and PostgreSQL.
+Cencosud's strategic news monitoring and scoring system for competitive intelligence across Latin America.
 
-## 🏗️ Architecture
+## Overview
 
-- **Backend**: NestJS (Node.js 20) microservices
-  - Auth Service (port 23001) - Authentication, registration, JWT
-  - Product Service (port 23002) - Product CRUD, category filtering
-  - Order Service (port 23003) - Order creation, status management
-  - User Service (port 23004) - User profile, admin management
-- **Database**: PostgreSQL 15
-- **Cache**: Redis 7
-- **Messaging**: RabbitMQ 3.x
-- **Container**: Docker with docker-compose orchestration
+Daily Pulse is a multi-service platform that aggregates, classifies, and scores news from multiple sources across Chile, Argentina, Colombia, Brazil, Peru, and Uruguay. The system uses AI to prioritize news based on business relevance, strategic impact, and regional segmentation.
 
-## 🚀 Quick Start
+## Architecture
 
-### Prerequisites
+```
+┌─────────────┐     ┌─────────────┐     ┌─────────────┐
+│  PostgreSQL │     │ auth-service │     │news-service │
+│   (port     │     │  (port       │     │  (port       │
+│   21000)    │     │   23002)     │     │   23001)     │
+└──────┬──────┘     └──────┬──────┘     └──────┬──────┘
+       │                   │                   │
+       └───────────────────┴───────────────────┘
+                    docker-compose
+```
 
-- Docker 24.x
-- docker-compose 2.x
+## Prerequisites
 
-### Launch Platform
+- Docker 26.0.0+
+- Docker Compose 2.27.0+
+- 4GB RAM minimum for all services
+
+## Quick Start
 
 ```bash
 ./run.sh
 ```
 
-This script will:
+This will:
 1. Create `.env` from `.env.example` if not present
-2. Check Docker installation and status
-3. Build and start all services
-4. Verify service health
+2. Build Docker images for all services
+3. Start PostgreSQL, auth-service, and news-service
+4. Wait for all services to become healthy
+5. Display access URLs and endpoints
 
-### Manual Start
+## Services
+
+### Auth Service (Port 23002)
+
+Authentication and user management.
+
+**Endpoints:**
+- `POST /api/auth/register` - Register new user
+- `POST /api/auth/login` - Login and receive JWT token
+- `GET /api/auth/me` - Get current user info
+
+**Health:** `GET /health`
+
+### News Service (Port 23001)
+
+News ingestion, classification, and scoring.
+
+**Endpoints:**
+- `GET /api/news` - List news items (with filters)
+- `GET /api/news/{id}` - Get single news item
+- `POST /api/news` - Create news item (authenticated)
+- `PATCH /api/news/{id}` - Update news item (authenticated)
+- `DELETE /api/news/{id}` - Delete news item (authenticated)
+- `GET /api/sources` - List news sources
+- `POST /api/sources` - Create news source (authenticated)
+
+**Health:** `GET /health`
+
+### PostgreSQL (Port 21000)
+
+Database for persistent storage.
+
+**Default credentials:**
+- User: `cencosud`
+- Password: `supersecret`
+- Database: `cencosud_news`
+
+## Environment Variables
+
+Create a `.env` file based on `.env.example`:
+
+```env
+POSTGRES_USER=cencosud
+POSTGRES_PASSWORD=supersecret
+POSTGRES_DB=cencosud_news
+POSTGRES_HOST=postgres
+POSTGRES_PORT=5432
+
+AUTH_SERVICE_PORT=23002
+NEWS_SERVICE_PORT=23001
+
+JWT_SECRET_KEY=your-secret-key-at-least-32-characters-long
+JWT_ALGORITHM=HS256
+JWT_EXPIRATION_MINUTES=1440
+```
+
+## Common Tasks
+
+### Check service status
 
 ```bash
-docker-compose up --build -d
+docker compose ps
 ```
 
-## 📡 API Endpoints
-
-### Auth Service (port 23001)
-
-| Method | Endpoint        | Description           |
-|--------|-----------------|-----------------------|
-| POST   | /api/auth/register | User registration |
-| POST   | /api/auth/login    | User login        |
-| POST   | /api/auth/refresh  | Refresh token    |
-| GET    | /api/auth/me       | Get current user |
-
-### Product Service (port 23002)
-
-| Method | Endpoint           | Description            |
-|--------|-------------------|------------------------|
-| GET    | /api/products     | List products (filter by category) |
-| GET    | /api/products/:id | Get product by ID      |
-| POST   | /api/products     | Create product (admin) |
-| PUT    | /api/products/:id  | Update product (admin  |
-| DELETE | /api/products/:id | Delete product (admin) |
-
-### Order Service (port 23003)
-
-| Method | Endpoint              | Description            |
-|--------|-----------------------|------------------------|
-| GET    | /api/orders           | List orders            |
-| GET    | /api/orders/:id       | Get order by ID        |
-| POST   | /api/orders           | Create order           |
-| PUT    | /api/orders/:id/status | Update order status   |
-
-### User Service (port 23004)
-
-| Method | Endpoint        | Description                |
-|--------|-----------------|----------------------------|
-| GET    | /api/users/me   | Get current user profile   |
-| GET    | /api/users/:id  | Get user by ID (admin)      |
-| PUT    | /api/users/me   | Update current user profile |
-
-## 🛠️ Services
-
-### Health Checks
-
-- Auth Service: `http://localhost:23001/health`
-- Product Service: `http://localhost:23002/health`
-- Order Service: `http://localhost:23003/health`
-- User Service: `http://localhost:23004/health`
-
-### Management Interfaces
-
-- RabbitMQ Management: http://localhost:15672 (guest/guest)
-- PostgreSQL: localhost:25432
-- Redis: localhost:26379
-
-## 🧪 Testing
+### View logs
 
 ```bash
-# Run all service tests
-docker-compose exec auth-service npm test
-docker-compose exec product-service npm test
-docker-compose exec order-service npm test
-docker-compose exec user-service npm test
+docker compose logs -f auth-service
+docker compose logs -f news-service
 ```
 
-## 📁 Project Structure
-
-```
-.
-├── backend/
-│   ├── auth-service/       # Authentication microservice
-│   ├── product-service/    # Product management microservice
-│   ├── order-service/      # Order management microservice
-│   ├── user-service/       # User management microservice
-│   └── shared/             # Shared DTOs, entities, utilities
-├── docker-compose.yml      # Docker orchestration
-├── .env.example            # Environment variables template
-├── run.sh                  # Startup script
-└── README.md
-```
-
-## 🔒 Environment Variables
-
-Copy `.env.example` to `.env` and configure:
-
-| Variable           | Description                      | Default                |
-|-------------------|----------------------------------|------------------------|
-| POSTGRES_USER     | PostgreSQL username              | postgres               |
-| POSTGRES_PASSWORD | PostgreSQL password              | postgres               |
-| POSTGRES_DB       | PostgreSQL database name         | catshop                |
-| REDIS_HOST        | Redis host                       | redis                  |
-| REDIS_PORT        | Redis port                       | 6379                   |
-| RABBITMQ_HOST     | RabbitMQ host                    | rabbitmq               |
-| RABBITMQ_PORT     | RabbitMQ port                    | 5672                   |
-| JWT_SECRET        | JWT signing secret               | (required)             |
-| JWT_EXPIRES_IN    | JWT expiration time              | 1h                     |
-| REFRESH_TOKEN_SECRET | Refresh token secret         | (required)             |
-| REFRESH_TOKEN_EXPIRES_IN | Refresh token expiration | 7d                  |
-
-## 🐳 Docker Commands
+### Restart services
 
 ```bash
-# Start services
-docker-compose up -d
-
-# Stop services
-docker-compose down
-
-# View logs
-docker-compose logs -f [service_name]
-
-# Rebuild services
-docker-compose up --build -d
-
-# Stop and remove volumes
-docker-compose down -v
+docker compose restart auth-service news-service
 ```
 
-## 📜 License
+### Stop all services
 
-MIT
+```bash
+docker compose down
+```
+
+### Rebuild services
+
+```bash
+docker compose build --no-cache
+docker compose up -d
+```
+
+### Seed initial data
+
+```bash
+docker compose exec news-service python -c "
+from backend.shared.db import SessionLocal
+from backend.news_service.models import NewsSourceModel
+from datetime import datetime
+
+db = SessionLocal()
+sources = [
+    NewsSourceModel(name='El Mercurio', url='https://www.elmercurio.cl', country='CL'),
+    NewsSourceModel(name='La Tercera', url='https://www.latercera.cl', country='CL'),
+    NewsSourceModel(name='Clarín', url='https://www.clarin.com', country='AR'),
+]
+for s in sources:
+    existing = db.query(NewsSourceModel).filter(NewsSourceModel.url == s.url).first()
+    if not existing:
+        db.add(s)
+db.commit()
+db.close()
+print('Seed data created')
+"
+```
+
+## Testing API
+
+### Register a user
+
+```bash
+curl -X POST http://localhost:23002/api/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{"email":"analyst@cencosud.cl","full_name":"Test Analyst","password":"test123"}'
+```
+
+### Login
+
+```bash
+curl -X POST http://localhost:23002/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"analyst@cencosud.cl","password":"test123"}'
+```
+
+### Get current user
+
+```bash
+curl http://localhost:23002/api/auth/me \
+  -H "Authorization: Bearer <token>"
+```
+
+### List news
+
+```bash
+curl "http://localhost:23001/api/news?limit=10"
+```
+
+### Create news (authenticated)
+
+```bash
+curl -X POST http://localhost:23001/api/news \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer <token>" \
+  -d '{
+    "title":"Test News",
+    "summary":"This is a test news item",
+    "url":"https://example.com/news/1",
+    "published_at":"2024-01-15T10:30:00",
+    "source_id":1,
+    "country":"CL",
+    "tags":["test","news"],
+    "priority":2
+  }'
+```
+
+## Troubleshooting
+
+### Services not starting
+
+1. Check Docker is running: `docker info`
+2. Check ports are available: `lsof -i :23001 -i :23002 -i :21000`
+3. View logs: `docker compose logs`
+
+### Database connection issues
+
+1. Verify PostgreSQL is healthy: `docker compose ps postgres`
+2. Check logs: `docker compose logs postgres`
+3. Try connecting manually: `docker compose exec postgres psql -U cencosud -d cencosud_news`
+
+### Clean slate
+
+```bash
+docker compose down -v
+rm -f .env
+./run.sh
+```
+
+## Development
+
+### Local development without Docker
+
+```bash
+cd backend
+pip install -r requirements.txt
+export POSTGRES_HOST=localhost POSTGRES_USER=cencosud POSTGRES_PASSWORD=supersecret POSTGRES_DB=cencosud_news
+export JWT_SECRET_KEY=dev-secret-key-at-least-32-chars
+uvicorn auth-service.main:app --port 23002 &
+uvicorn news-service.main:app --port 23001 &
+```
+
+## License
+
+Proprietary - Cencosud
